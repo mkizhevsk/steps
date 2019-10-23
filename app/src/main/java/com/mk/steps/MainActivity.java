@@ -15,6 +15,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,15 +30,20 @@ public class MainActivity extends AppCompatActivity {
     boolean start = false;
     boolean finish = false;
 
+    InOut inOut;
+
+    DecimalFormat df;
+
     TextView distanceTextView;
     Button startFinishButton;
     TextView accuracyTextView;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        inOut = new InOut(this);
 
         distanceTextView = findViewById(R.id.distance);
         startFinishButton = findViewById(R.id.btnStartFinish);
@@ -49,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
 
-
                 // Called when a new location is found by the network location provider.
                 if(firstLocationUnknown) {
                     tempLocation = location;
@@ -61,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                DecimalFormat df = new DecimalFormat("###.#");
+                df = new DecimalFormat("###.#");
                 distanceTextView.setText(df.format(distance/1000));
                 accuracyTextView.setText(String.valueOf(location.getAccuracy()));
                 Log.d(LOG_TAG, String.valueOf(location.getProvider()) + ",  скорость: " + String.valueOf(location.getSpeed())
@@ -99,6 +106,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        Log.d(LOG_TAG, "start");
+
+        Date currentTime = Calendar.getInstance().getTime();
+        String date = String.valueOf(currentTime);
+        Log.d(LOG_TAG, date);
+
+        String dis = "0";
+        if (distance != 0) dis = df.format(distance/1000);
+        Log.d(LOG_TAG, dis);
+
+        String info = date + "/_" + dis;
+        Log.d(LOG_TAG, info);
+        inOut.writeData(info);
+
         super.onDestroy();
         Log.d(LOG_TAG, "on destroy");
     }
