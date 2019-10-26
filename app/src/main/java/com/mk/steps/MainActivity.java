@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main);
 
         inOut = new InOut(this);
+        inOut.readData();
 
         distanceTextView = findViewById(R.id.distance);
         startFinishButton = findViewById(R.id.btnStartFinish);
@@ -106,8 +108,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        Log.d(LOG_TAG, "start");
-
         Date currentTime = Calendar.getInstance().getTime();
         String date = String.valueOf(currentTime);
         Log.d(LOG_TAG, date);
@@ -118,9 +118,10 @@ public class MainActivity extends AppCompatActivity {
 
         String info = date + "/_" + dis;
         Log.d(LOG_TAG, info);
-        inOut.writeData(info);
+        InOut.lines.add(info);
+        inOut.writeData();
+        Toast.makeText(this, "result was saved", Toast.LENGTH_SHORT).show();
 
         super.onDestroy();
-        Log.d(LOG_TAG, "on destroy");
     }
 }

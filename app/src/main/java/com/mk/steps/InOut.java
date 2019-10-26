@@ -20,10 +20,12 @@ import java.util.List;
 
 public class InOut {
 
-    Context context;
+    private Context context;
 
     final  String DIR_SD = "Steps";
     final String FILENAME_SD = "activities.txt";
+
+    public static List<String> lines;
 
     final String LOG_TAG = "myLogs";
 
@@ -31,47 +33,36 @@ public class InOut {
         this.context = context;
     }
 
-    public ArrayList<String> readData(String fileName) {
-        // проверяем доступность SD
+    public void readData() {
         if (!Environment.getExternalStorageState().equals(
                 Environment.MEDIA_MOUNTED)) {
             Log.d(LOG_TAG, "SD-карта не доступна: " + Environment.getExternalStorageState());
-            return null;
+            return;
         }
-        // получаем путь к SD
-        File sdPath = Environment.getExternalStorageDirectory();
-        // добавляем свой каталог к пути
-        sdPath = new File(sdPath.getAbsolutePath() + "/" + DIR_SD);
-        // формируем объект File, который содержит путь к файлу
-        File sdFile = new File(sdPath, fileName);
 
-        ArrayList<String> lines = new ArrayList<>();
+        File sdPath = Environment.getExternalStorageDirectory();
+        sdPath = new File(sdPath.getAbsolutePath() + "/" + DIR_SD);
+        File sdFile = new File(sdPath, FILENAME_SD);
+
+        lines = new ArrayList<>();
         try {
-            // открываем поток для чтения
             BufferedReader br = new BufferedReader(new FileReader(sdFile));
             String str = "";
-            // читаем содержимое
             while ((str = br.readLine()) != null) {
                 lines.add(str);
-                //Log.d(LOG_TAG, str);
             }
         } catch (FileNotFoundException e) {
-            Toast.makeText(context, "file " + fileName + " was not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "file " + FILENAME_SD + " was not found", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         } catch (IOException e) {
             StringWriter errors = new StringWriter();
             e.printStackTrace(new PrintWriter(errors));
-            String er = errors.toString();
-            Log.d(LOG_TAG, er);
         }
         String s = String.valueOf(lines.size());
         Log.d(LOG_TAG, s);
-        return lines;
-
     }
 
-    public void writeData(String info) {
-
+    public void writeData() {
         if (!Environment.getExternalStorageState().equals(
                 Environment.MEDIA_MOUNTED)) {
             Log.d(LOG_TAG, "SD-карта не доступна: " + Environment.getExternalStorageState());
@@ -83,10 +74,11 @@ public class InOut {
         sdPath.mkdirs();
         File sdFile = new File(sdPath, FILENAME_SD);
 
-        Log.d(LOG_TAG, info);
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(sdFile));
-            bw.write(info  + "\n");
+            for(String line : lines) {
+                bw.write(line  + "\n");
+            }
             bw.close();
             Log.d(LOG_TAG, "Файл записан на SD: " + sdFile.getAbsolutePath());
         } catch (IOException e) {
