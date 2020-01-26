@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -109,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
             start = true;
         } else if(start && !finish) {
             //finish training
-            startFinishButton.setText("...");
             finish = true;
 
             editDistance();
@@ -122,15 +122,17 @@ public class MainActivity extends AppCompatActivity {
         View pathView = di.inflate(R.layout.distance, null);
         AlertDialog.Builder newPathDialogBuilder = new AlertDialog.Builder(this);
         newPathDialogBuilder.setView(pathView);
-        final EditText pathInput = pathView.findViewById(R.id.input_distance);
-        pathInput.setText(distanceInKm);
+        final EditText distanceInput = pathView.findViewById(R.id.input_distance);
+        distanceInput.setText(distanceInKm);
         newPathDialogBuilder
                 .setCancelable(false)
                 .setPositiveButton("OK",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                distanceInKm = pathInput.getText().toString();
-                                //Log.d(TAG, "from input: " + tempPath);
+                                distanceInKm = String.valueOf(distanceInput.getText());
+                                //Log.d(LOG_TAG, "from input: " + distanceInKm);
+                                distanceTextView.setText(distanceInKm);
+                                startFinishButton.setText("...");
                             }
                         })
                 .setNegativeButton("Отмена",
@@ -146,17 +148,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         Date currentTime = Calendar.getInstance().getTime();
-        String date = String.valueOf(currentTime);
-        Log.d(LOG_TAG, date);
+
+        SimpleDateFormat simpleDate =  new SimpleDateFormat("yyyy-MM-dd");
+        String date = simpleDate.format(currentTime);
+
+        //String date = String.valueOf(currentTime);
+        //Log.d(LOG_TAG, date);
 
 //        String dis = "0";
 //        if (distanceInMeters != 0) dis = df.format(distanceInMeters /1000);
 //        Log.d(LOG_TAG, dis);
 
         String info = date + "/_" + distanceInKm;
-        Log.d(LOG_TAG, info);
+        //Log.d(LOG_TAG, info);
         InOut.lines.add(info);
         inOut.writeData();
+
         Toast.makeText(this, "result was saved", Toast.LENGTH_SHORT).show();
 
         super.onDestroy();
