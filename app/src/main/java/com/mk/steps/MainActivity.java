@@ -74,10 +74,11 @@ public class MainActivity extends AppCompatActivity {
                     if(start && !finish) {
                         distanceInMeters += location.distanceTo(tempLocation);
                         tempLocation = location;
+
+                        distanceInKm = df.format(distanceInMeters /1000);
+                        distanceTextView.setText(distanceInKm);
                     }
                 }
-                distanceInKm = df.format(distanceInMeters /1000);
-                distanceTextView.setText(distanceInKm);
 
                 accuracyTextView.setText(String.valueOf(location.getAccuracy()));
 //                Log.d(LOG_TAG, String.valueOf(location.getProvider()) + ",  скорость: " + String.valueOf(location.getSpeed())
@@ -151,13 +152,6 @@ public class MainActivity extends AppCompatActivity {
 
         SimpleDateFormat simpleDate =  new SimpleDateFormat("yyyy-MM-dd");
         String date = simpleDate.format(currentTime);
-
-        //String date = String.valueOf(currentTime);
-        //Log.d(LOG_TAG, date);
-
-//        String dis = "0";
-//        if (distanceInMeters != 0) dis = df.format(distanceInMeters /1000);
-//        Log.d(LOG_TAG, dis);
 
         String info = date + "/_" + distanceInKm;
         //Log.d(LOG_TAG, info);
