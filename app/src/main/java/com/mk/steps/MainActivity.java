@@ -19,10 +19,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mk.steps.data.Weather;
+
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
     Button startFinishButton;
     TextView accuracyTextView;
 
+    String openWeatherAppId = "6e71959cff1c0c71a6049226d45c69a1";
+    String openWeatherUnits = "metric";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +68,33 @@ public class MainActivity extends AppCompatActivity {
         accuracyTextView = findViewById(R.id.accuracy);
 
         df = new DecimalFormat("###.#");
+
+
+
+        // temperature
+        Log.d(LOG_TAG, "temperature start");
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://api.openweathermap.org/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        RetrofitService api = retrofit.create(RetrofitService.class);
+
+        api.loadPojoCityWeather(openWeatherAppId, openWeatherUnits, "izhevsk").enqueue(new Callback<Weather>() {
+            @Override
+            public void onResponse(Call<Weather> call, Response<Weather> response) {
+                Weather weather = response.body();
+                double temperature = weather.getMain().getTemp();
+                Log.d(LOG_TAG, " temperature " + weather.getVisibility() + " " + temperature);
+            }
+
+            @Override
+            public void onFailure(Call<Weather> call, Throwable t) {
+
+            }
+        });
+
+
 
         Log.d(LOG_TAG, "firstLocationUnknown");
         // Acquire a reference to the system Location Manager
@@ -101,7 +139,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
-
     }
 
     public void onClick(View view) {
