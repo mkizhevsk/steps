@@ -2,12 +2,15 @@ package com.mk.steps;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,11 +23,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mk.steps.data.Weather;
+import com.mk.steps.data.entity.Training;
+import com.mk.steps.data.service.BaseService;
 
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -34,12 +38,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
-    final String LOG_TAG = "myLogs";
+    final String TAG = "myLogs";
 
     Location tempLocation;
     boolean firstLocationUnknown = true;
-    float distanceInMeters = 0;
-    String distanceInKm = "0";
+    double distanceInMeters = 0;
+    double distanceInKm = 0;
 
     boolean start = false;
     boolean finish = false;
@@ -55,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     String openWeatherAppId = "6e71959cff1c0c71a6049226d45c69a1";
     String openWeatherUnits = "metric";
 
+    BaseService baseService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,10 +75,10 @@ public class MainActivity extends AppCompatActivity {
 
         df = new DecimalFormat("###.#");
 
-
+        startBaseService();
 
         // temperature
-        Log.d(LOG_TAG, "temperature start");
+        Log.d(TAG, "temperature start");
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://api.openweathermap.org/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -85,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<Weather> call, Response<Weather> response) {
                 Weather weather = response.body();
                 double temperature = weather.getMain().getTemp();
-                Log.d(LOG_TAG, " temperature " + weather.getVisibility() + " " + temperature);
+                Log.d(TAG, " temperature " + weather.getVisibility() + " " + temperature);
             }
 
             @Override
@@ -96,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        Log.d(LOG_TAG, "firstLocationUnknown");
+        Log.d(TAG, "firstLocationUnknown");
         // Acquire a reference to the system Location Manager
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
@@ -113,8 +119,8 @@ public class MainActivity extends AppCompatActivity {
                         distanceInMeters += location.distanceTo(tempLocation);
                         tempLocation = location;
 
-                        distanceInKm = df.format(distanceInMeters /1000);
-                        distanceTextView.setText(distanceInKm);
+                        distanceInKm = distanceInMeters /1000;
+                        distanceTextView.setText(String.valueOf(distanceInKm));
                     }
                 }
 
@@ -155,47 +161,73 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void editDistance() {
-
         LayoutInflater di = LayoutInflater.from(this);
         View pathView = di.inflate(R.layout.distance, null);
         AlertDialog.Builder newPathDialogBuilder = new AlertDialog.Builder(this);
         newPathDialogBuilder.setView(pathView);
         final EditText distanceInput = pathView.findViewById(R.id.input_distance);
-        distanceInput.setText(distanceInKm);
+        distanceInput.setText(String.valueOf(distanceInKm));
         newPathDialogBuilder
                 .setCancelable(false)
                 .setPositiveButton("OK",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                distanceInKm = String.valueOf(distanceInput.getText());
-                                //Log.d(LOG_TAG, "from input: " + distanceInKm);
-                                distanceTextView.setText(distanceInKm);
-                                startFinishButton.setText("...");
-                            }
+                        (dialog, id) -> {
+                            distanceInKm = Double.parseDouble(String.valueOf(distanceInput.getText()));
+                            Log.d(TAG, "from input: " + distanceInKm);
+                            distanceTextView.setText(String.valueOf(distanceInKm));
+                            startFinishButton.setText("...");
                         })
                 .setNegativeButton("Отмена",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        });
+                        (dialog, id) -> dialog.cancel());
         AlertDialog createDialog = newPathDialogBuilder.create();
         createDialog.show();
     }
 
+    // BaseService
+    private void startBaseService() {
+        Log.d(TAG, "MainActivity startBaseService()");
+        Intent intent = new Intent(this, BaseService.class);
+        bindService(intent, baseServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private ServiceConnection baseServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            BaseService.LocalBinder binder = (BaseService.LocalBinder) service;
+            baseService = binder.getService();
+            Log.d(TAG, "MainActivity baseService onServiceConnected");
+
+            List<Training> trainings = baseService.getTrainings();
+            Log.d(TAG, "trainings " + trainings.size());
+            for(Training training : trainings) {
+                Log.d(TAG, training.getId() + " " + training.getDate() + " " + training.getDistance() + " " + training.getDuration() + " " + training.getType());
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+            Log.d(TAG, "MainActivity baseService onBaseServiceDisconnected");
+        }
+    };
+
     @Override
     protected void onDestroy() {
-        Date currentTime = Calendar.getInstance().getTime();
+        Log.d(TAG, "Start onDestroy");
 
-        SimpleDateFormat simpleDate =  new SimpleDateFormat("yyyy-MM-dd");
-        String date = simpleDate.format(currentTime);
+        Log.d(TAG, "distanceInKm " + distanceInKm);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if(distanceInKm > 0) {
+                Training training = new Training(LocalDate.now(), distanceInKm, 0, 1);
+                baseService.insertTraining(training);
+                Toast.makeText(this, "result was saved", Toast.LENGTH_SHORT).show();
+            }
+        }
 
-        String info = date + "/_" + distanceInKm;
-        //Log.d(LOG_TAG, info);
-        InOut.lines.add(info);
-        inOut.writeData();
 
-        Toast.makeText(this, "result was saved", Toast.LENGTH_SHORT).show();
+        stopService(new Intent(this, BaseService.class));
+        if (baseServiceConnection != null) {
+            unbindService(baseServiceConnection);
+        }
 
         super.onDestroy();
     }

@@ -3,8 +3,10 @@ package com.mk.steps.data.service;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -12,7 +14,10 @@ import android.util.Log;
 import com.mk.steps.data.DBHelper;
 import com.mk.steps.data.entity.Training;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BaseService extends Service {
 
@@ -23,9 +28,36 @@ public class BaseService extends Service {
     private static final String BASE_NAME = "my_music.db";
     private static final String TRAINING_TABLE = "training";
 
-
-
     final String TAG = "myLogs";
+
+    public void onCreate() {
+        super.onCreate();
+
+        dbHelper = new DBHelper(this);
+        Log.d(TAG, "BaseService onCreate");
+    }
+
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "BaseService onStartCommand");
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "BaseService onDestroy");
+    }
+
+    public class LocalBinder extends Binder {
+        public BaseService getService() {
+            return BaseService.this;
+        }
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
 
     // Note
     public void insertTraining(Training training) {
@@ -85,41 +117,46 @@ public class BaseService extends Service {
 //        return note;
 //    }
 
-//    private List<Note> getCursorNotes(Cursor noteCursor) {
-//        List<Note> notes = new ArrayList<>();
-//
-//        if (noteCursor.moveToFirst()) {
-//            int idColIndex = noteCursor.getColumnIndex("id");
-//            int dateColIndex = noteCursor.getColumnIndex("date");
-//            int contentColIndex = noteCursor.getColumnIndex("content");
-//
-//            do {
-//                Note note = new Note();
-//                note.setId(noteCursor.getInt(idColIndex));
-//                note.setDate(LocalDate.parse(noteCursor.getString(dateColIndex) , formatter));
-//                note.setContent(noteCursor.getString(contentColIndex));
-//
-//                notes.add(note);
-//            } while (noteCursor.moveToNext());
-//        } else Log.d(TAG, "notes: 0 rows");
-//
-//        return notes;
-//    }
+    private List<Training> getCursorTrainings(Cursor trainingCursor) {
+        List<Training> trainings = new ArrayList<>();
 
-//    public List<Note> getNotes() {
-//        Log.d(TAG, "start getNotes");
-//        SQLiteDatabase db = dbHelper.getWritableDatabase();
-//
-//        Cursor noteCursor = db.query("note", null, null, null, null, null, null);
-//
-//        List<Note> notes = getCursorNotes(noteCursor);
-//
-//        noteCursor.close();
-//
-//        dbHelper.close();
-//
-//        return notes;
-//    }
+        if (trainingCursor.moveToFirst()) {
+            int idColIndex = trainingCursor.getColumnIndex("id");
+            int dateColIndex = trainingCursor.getColumnIndex("date");
+            int distanceColIndex = trainingCursor.getColumnIndex("distance");
+            int durationColIndex = trainingCursor.getColumnIndex("duration");
+            int typeColIndex = trainingCursor.getColumnIndex("type");
+
+            do {
+                Training training = new Training();
+                training.setId(trainingCursor.getInt(idColIndex));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-LL-dd");
+                    training.setDate(LocalDate.parse(trainingCursor.getString(dateColIndex) , formatter));
+                }
+                training.setDistance(trainingCursor.getDouble(distanceColIndex));
+                training.setDuration(trainingCursor.getInt(durationColIndex));
+                training.setType(trainingCursor.getInt(typeColIndex));
+
+                trainings.add(training);
+            } while (trainingCursor.moveToNext());
+        } else Log.d(TAG, "trainings: 0 rows");
+
+        return trainings;
+    }
+
+    public List<Training> getTrainings() {
+        Log.d(TAG, "start getTrainings");
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        Cursor trainingCursor = db.query(TRAINING_TABLE, null, null, null, null, null, null);
+        List<Training> trainings = getCursorTrainings(trainingCursor);
+
+        trainingCursor.close();
+        dbHelper.close();
+
+        return trainings;
+    }
 
 //    public List<Note> getNotesByYear(String year) {
 //        Log.d(TAG, "" + year);
@@ -143,16 +180,4 @@ public class BaseService extends Service {
 //        return notes;
 //    }
 
-
-    public class LocalBinder extends Binder {
-        public BaseService getService() {
-            return BaseService.this;
-        }
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
 }
