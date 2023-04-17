@@ -13,6 +13,13 @@ public class Training {
     public Training() {
     }
 
+    public Training(LocalDate date, double distance, int duration, int type) {
+        this.date = date;
+        this.distance = distance;
+        this.duration = duration;
+        this.type = type;
+    }
+
     public int getId() {
         return id;
     }
