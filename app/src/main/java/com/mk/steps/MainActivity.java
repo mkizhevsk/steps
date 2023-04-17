@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
 
     Location tempLocation;
     boolean firstLocationUnknown = true;
+
+    double temperature;
     double distanceInMeters = 0;
     double distanceInKm = 0;
 
@@ -79,30 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
         startBaseService();
 
-        // temperature
-        Log.d(TAG, "temperature start");
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.openweathermap.org/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        RetrofitService api = retrofit.create(RetrofitService.class);
-
-        api.loadPojoCityWeather(openWeatherAppId, openWeatherUnits, "izhevsk").enqueue(new Callback<Weather>() {
-            @Override
-            public void onResponse(Call<Weather> call, Response<Weather> response) {
-                Weather weather = response.body();
-                double temperature = weather.getMain().getTemp();
-                Log.d(TAG, " temperature " + weather.getVisibility() + " " + temperature);
-            }
-
-            @Override
-            public void onFailure(Call<Weather> call, Throwable t) {
-
-            }
-        });
-
-
+        getTemperature();
 
         Log.d(TAG, "firstLocationUnknown");
         // Acquire a reference to the system Location Manager
@@ -147,6 +126,31 @@ public class MainActivity extends AppCompatActivity {
         }
 
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+    }
+
+    private void getTemperature() {
+        Log.d(TAG, "temperature start");
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://api.openweathermap.org/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        RetrofitService api = retrofit.create(RetrofitService.class);
+
+        api.loadPojoCityWeather(openWeatherAppId, openWeatherUnits, "izhevsk").enqueue(new Callback<Weather>() {
+            @Override
+            public void onResponse(Call<Weather> call, Response<Weather> response) {
+                Weather weather = response.body();
+                temperature = weather.getMain().getTemp();
+                Log.d(TAG, " temperature " + weather.getVisibility() + " " + temperature);
+                temperatureTextView.setText(String.valueOf(temperature));
+            }
+
+            @Override
+            public void onFailure(Call<Weather> call, Throwable t) {
+
+            }
+        });
     }
 
     public void onClick(View view) {
