@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -22,6 +23,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mk.steps.data.Helper;
 import com.mk.steps.data.Weather;
 import com.mk.steps.data.entity.Training;
 import com.mk.steps.data.service.BaseService;
@@ -29,6 +31,7 @@ import com.mk.steps.data.service.RetrofitService;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import retrofit2.Call;
@@ -39,19 +42,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
-    final String TAG = "myLogs";
+    private Location tempLocation;
+    private boolean firstLocationUnknown = true;
 
-    Location tempLocation;
-    boolean firstLocationUnknown = true;
+    private double temperature;
 
-    double temperature;
-    double distanceInMeters = 0;
-    double distanceInKm = 0;
+    private double distanceInMeters = 0;
+    private LocalDateTime startDateTime;
+
+    private Training training;
 
     boolean start = false;
     boolean finish = false;
-
-    InOut inOut;
 
     DecimalFormat df;
 
@@ -65,13 +67,12 @@ public class MainActivity extends AppCompatActivity {
 
     BaseService baseService;
 
+    final String TAG = "myLogs";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
-        inOut = new InOut(this);
-        //inOut.readData();
 
         temperatureTextView = findViewById(R.id.temperatureTextView);
         distanceTextView = findViewById(R.id.distanceTextView);
@@ -79,53 +80,18 @@ public class MainActivity extends AppCompatActivity {
         accuracyTextView = findViewById(R.id.accuracyTextView);
         df = new DecimalFormat("###.#");
 
-        startBaseService();
+        if(Helper.checkPermissions(this, this)) {
+            Log.d(TAG, "permission granted by default");
 
-        getTemperature();
-
-        Log.d(TAG, "firstLocationUnknown");
-        // Acquire a reference to the system Location Manager
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-        // Define a listener that responds to location updates
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-
-                // Called when a new location is found by the network location provider.
-                if(firstLocationUnknown) {
-                    tempLocation = location;
-                    firstLocationUnknown = false;
-                } else {
-                    if(start && !finish) {
-                        distanceInMeters += location.distanceTo(tempLocation);
-                        tempLocation = location;
-
-                        distanceInKm = distanceInMeters /1000;
-                        distanceTextView.setText(String.valueOf(distanceInKm));
-                    }
-                }
-
-                accuracyTextView.setText(String.valueOf(location.getAccuracy()));
-//                Log.d(LOG_TAG, String.valueOf(location.getProvider()) + ",  скорость: " + String.valueOf(location.getSpeed())
-//                        + ",  расстояние: " + distanceInMeters + ",  точность: " + String.valueOf(location.getAccuracy()));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startDateTime = LocalDateTime.now();
+                training = new Training(startDateTime.toLocalDate(), 0, 0, 1);
             }
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
-
-            public void onProviderEnabled(String provider) {
-            }
-
-            public void onProviderDisabled(String provider) {
-            }
-        };
-
-        // Register the listener with the Location Manager to receive location updates
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+            startBaseService();
+            getTemperature();
+            getLocation();
         }
-
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
     }
 
     private void getTemperature() {
@@ -153,6 +119,51 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void getLocation() {
+        Log.d(TAG, "firstLocationUnknown");
+        // Acquire a reference to the system Location Manager
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        // Define a listener that responds to location updates
+        LocationListener locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                // Called when a new location is found by the network location provider.
+                if(firstLocationUnknown) {
+                    tempLocation = location;
+                    firstLocationUnknown = false;
+                } else {
+                    if(start && !finish) {
+                        distanceInMeters += location.distanceTo(tempLocation);
+                        tempLocation = location;
+
+                        training.setDistance(distanceInMeters /1000);
+                        distanceTextView.setText(Helper.getStringFromDouble(training.getDistance()));
+                    }
+                }
+
+                accuracyTextView.setText(String.valueOf(location.getAccuracy()));
+                Log.d(TAG, location.getProvider() + ",  скорость: " + location.getSpeed()
+                        + ",  расстояние: " + distanceInMeters + ",  точность: " + location.getAccuracy());
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            public void onProviderEnabled(String provider) {
+            }
+
+            public void onProviderDisabled(String provider) {
+            }
+        };
+
+        // Register the listener with the Location Manager to receive location updates
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+    }
+
     public void onClick(View view) {
         if(!start && !finish) {
             //start training
@@ -161,6 +172,8 @@ public class MainActivity extends AppCompatActivity {
         } else if(start && !finish) {
             //finish training
             finish = true;
+
+            training.setDuration(Helper.getDuration(startDateTime));
 
             editDistance();
         }
@@ -172,14 +185,14 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder newPathDialogBuilder = new AlertDialog.Builder(this);
         newPathDialogBuilder.setView(pathView);
         final EditText distanceInput = pathView.findViewById(R.id.input_distance);
-        distanceInput.setText(String.valueOf(distanceInKm));
+        distanceInput.setText(String.valueOf(training.getDistance()));
         newPathDialogBuilder
                 .setCancelable(false)
                 .setPositiveButton("OK",
                         (dialog, id) -> {
-                            distanceInKm = Double.parseDouble(String.valueOf(distanceInput.getText()));
-                            Log.d(TAG, "from input: " + distanceInKm);
-                            distanceTextView.setText(String.valueOf(distanceInKm));
+                            training.setDistance(Double.parseDouble(String.valueOf(distanceInput.getText())));
+                            Log.d(TAG, "from input: " + training.getDistance());
+                            distanceTextView.setText(String.valueOf(training.getDistance()));
                             startFinishButton.setText("...");
                         })
                 .setNegativeButton("Отмена",
@@ -220,15 +233,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d(TAG, "Start onDestroy");
 
-        Log.d(TAG, "distanceInKm " + distanceInKm);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            if(distanceInKm > 0) {
-                Training training = new Training(LocalDate.now(), distanceInKm, 0, 1);
-                baseService.insertTraining(training);
-                Toast.makeText(this, "result was saved", Toast.LENGTH_SHORT).show();
-            }
+        Log.d(TAG, "distanceInKm " + training.getDistance());
+        if (training.getDistance() > 0) {
+            baseService.insertTraining(training);
+            Toast.makeText(this, "result was saved", Toast.LENGTH_SHORT).show();
         }
-
 
         stopService(new Intent(this, BaseService.class));
         if (baseServiceConnection != null) {
