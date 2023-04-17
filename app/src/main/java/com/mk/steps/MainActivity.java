@@ -30,7 +30,6 @@ import com.mk.steps.data.service.BaseService;
 import com.mk.steps.data.service.RetrofitService;
 
 import java.text.DecimalFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -179,6 +178,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void saveTraining() {
+        Log.d(TAG, "saveTraining " + training.toString());
+        if (training.getDistance() > 0) {
+            baseService.insertTraining(training);
+            Toast.makeText(this, "result was saved", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public void editDistance() {
         LayoutInflater di = LayoutInflater.from(this);
         View pathView = di.inflate(R.layout.distance, null);
@@ -190,8 +197,11 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setPositiveButton("OK",
                         (dialog, id) -> {
-                            training.setDistance(Double.parseDouble(String.valueOf(distanceInput.getText())));
                             Log.d(TAG, "from input: " + training.getDistance());
+
+                            training.setDistance(Double.parseDouble(String.valueOf(distanceInput.getText())));
+                            saveTraining();
+
                             distanceTextView.setText(String.valueOf(training.getDistance()));
                             startFinishButton.setText("...");
                         })
@@ -218,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
             List<Training> trainings = baseService.getTrainings();
             Log.d(TAG, "trainings " + trainings.size());
             for(Training training : trainings) {
-                Log.d(TAG, training.getId() + " " + training.getDate() + " " + training.getDistance() + " " + training.getDuration() + " " + training.getType());
+                Log.d(TAG, training.getId() + training.toString());
             }
         }
 
@@ -232,12 +242,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         Log.d(TAG, "Start onDestroy");
-
-        Log.d(TAG, "distanceInKm " + training.getDistance());
-        if (training.getDistance() > 0) {
-            baseService.insertTraining(training);
-            Toast.makeText(this, "result was saved", Toast.LENGTH_SHORT).show();
-        }
 
         stopService(new Intent(this, BaseService.class));
         if (baseServiceConnection != null) {

@@ -20,6 +20,11 @@ public class Training {
         this.type = type;
     }
 
+    @Override
+    public String toString() {
+        return date + " " + distance + " " + duration + " " + type;
+    }
+
     public int getId() {
         return id;
     }
