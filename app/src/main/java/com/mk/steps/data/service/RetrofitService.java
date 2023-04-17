@@ -1,4 +1,4 @@
-package com.mk.steps;
+package com.mk.steps.data.service;
 
 import com.mk.steps.data.Weather;
 

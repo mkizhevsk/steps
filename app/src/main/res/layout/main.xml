@@ -7,20 +7,32 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/distance"
+        android:id="@+id/temperatureTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="70dp"
+        android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
-        android:textSize="70dp"
-        app:layout_constraintBottom_toTopOf="@id/btnStartFinish"
+        app:layout_constraintBottom_toTopOf="@id/distanceTextView"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/distanceTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginRight="8dp"
+        android:textSize="70dp"
+        app:layout_constraintBottom_toTopOf="@id/startFinishButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/temperatureTextView" />
+
     <Button
-        android:id="@+id/btnStartFinish"
+        android:id="@+id/startFinishButton"
         android:layout_width="130dp"
         android:layout_height="70dp"
         android:layout_marginTop="16dp"
@@ -29,13 +41,13 @@
         android:onClick="onClick"
         android:text="Start"
         android:textSize="20dp"
-        app:layout_constraintBottom_toTopOf="@id/accuracy"
+        app:layout_constraintBottom_toTopOf="@id/accuracyTextView"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/distance" />
+        app:layout_constraintTop_toBottomOf="@id/distanceTextView" />
 
     <TextView
-        android:id="@+id/accuracy"
+        android:id="@+id/accuracyTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
@@ -45,6 +57,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnStartFinish" />
+        app:layout_constraintTop_toBottomOf="@+id/startFinishButton" />
 
 </android.support.constraint.ConstraintLayout>
