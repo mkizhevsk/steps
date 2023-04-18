@@ -24,7 +24,7 @@ public class Training {
 
     @Override
     public String toString() {
-        return Helper.getStringDate(date) + " " + distance + " " + duration + " " + type;
+        return Helper.getStringDate(date) + " - " + distance + " - " + duration + " - " + type;
     }
 
     public int getId() {

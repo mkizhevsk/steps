@@ -17,6 +17,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -188,9 +190,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveTraining() {
         Log.d(TAG, "saveTraining " + training.toString());
-        if (training.getDistance() > 0) {
-            baseService.insertTraining(training);
-            Toast.makeText(this, "result was saved", Toast.LENGTH_SHORT).show();
+        if (training != null && training.getDistance() > 0) {
+            training.setId((int) baseService.insertTraining(training));
+            Toast.makeText(this, "training was saved: " + training.getDistance() + " | " + training.getDuration(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -200,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder newPathDialogBuilder = new AlertDialog.Builder(this);
         newPathDialogBuilder.setView(pathView);
         final EditText distanceInput = pathView.findViewById(R.id.input_distance);
-        distanceInput.setText(String.valueOf(training.getDistance()));
+        distanceInput.setText(Helper.getStringFromDouble(training.getDistance()));
         newPathDialogBuilder
                 .setCancelable(false)
                 .setPositiveButton("OK",
@@ -217,6 +219,30 @@ public class MainActivity extends AppCompatActivity {
                         (dialog, id) -> dialog.cancel());
         AlertDialog createDialog = newPathDialogBuilder.create();
         createDialog.show();
+    }
+
+    // top right menu
+    public  boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, 1, 0, "training history");
+        return super.onCreateOptionsMenu(menu);
+    }
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 1: // path to music
+                String deletedTracksInfo;
+                try {
+                    deletedTracksInfo = Helper.getTrainingHistory(baseService.getTrainings());
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+                Log.d(TAG, deletedTracksInfo);
+                Intent deletedIntent = new Intent(this, ListActivity.class);
+                deletedIntent.putExtra("content", deletedTracksInfo);
+                startActivity(deletedIntent);
+
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     // BaseService
@@ -254,9 +280,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        Log.d(TAG, "Start onDestroy");
+        Log.d(TAG, "Start onDestroy " + training.getId());
 
-        if(training.getId() == 0) {
+
+        if(training != null && training.getId() == 0) {
             saveTraining();
         }
 

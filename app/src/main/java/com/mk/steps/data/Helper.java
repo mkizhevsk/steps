@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
+import com.mk.steps.data.entity.Training;
+
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -73,5 +75,22 @@ public class Helper {
 
     public static Date getDateFromString(String date) throws ParseException {
         return sdf.parse(date);
+    }
+
+    public static String getTrainingHistory(List<Training> trainings) {
+        String deletedTracksInfo = "";
+        for(Training training : trainings) {
+            StringBuilder sb = new StringBuilder();
+            if(deletedTracksInfo.isEmpty()) {
+                deletedTracksInfo = training.toString();
+            } else {
+                deletedTracksInfo = sb.append(deletedTracksInfo).append(getNewLine()).append(getNewLine()).append(training.toString()).toString();
+            }
+        }
+        return deletedTracksInfo;
+    }
+
+    private static String getNewLine() {
+        return System.getProperty("line.separator");
     }
 }

@@ -59,13 +59,14 @@ public class BaseService extends Service {
     }
 
     // Note
-    public void insertTraining(Training training) {
+    public long insertTraining(Training training) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         long rowID = db.insert(TRAINING_TABLE, null, getTrainingContentValues(training));
         Log.d(TAG, "note row inserted, ID = " + rowID);
 
         dbHelper.close();
+        return rowID;
     }
 
     private ContentValues getTrainingContentValues(Training training) {
