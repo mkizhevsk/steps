@@ -8,12 +8,17 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
 import java.text.DecimalFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class Helper {
+
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
     public static String getStringDistance(double distanceInMeters) {
         DecimalFormat df = new DecimalFormat("###.#");
@@ -50,11 +55,23 @@ public class Helper {
         return ((double) intValue) / 10;
     }
 
-    public static int getDuration(LocalDateTime startDateTime) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            Duration duration = Duration.between(startDateTime, LocalDateTime.now());
-            return (int) duration.toMinutes();
-        }
-        return 0;
+    public static int getDuration(Date startDateTime) {
+        System.out.println(startDateTime);
+        return (int) getDateDiff(startDateTime, new Date(System.currentTimeMillis()), TimeUnit.MINUTES);
+    }
+
+    public static long getDateDiff(Date date1, Date date2, TimeUnit timeUnit) {
+        System.out.println("here " + date1 + " " + date2);
+        long diffInMillies = date2.getTime() - date1.getTime();
+        return timeUnit.convert(diffInMillies,TimeUnit.MILLISECONDS);
+    }
+
+    public static String getStringDate(Date date) {
+
+        return sdf.format(date);
+    }
+
+    public static Date getDateFromString(String date) throws ParseException {
+        return sdf.parse(date);
     }
 }

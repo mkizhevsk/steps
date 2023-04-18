@@ -1,11 +1,13 @@
 package com.mk.steps.data.entity;
 
-import java.time.LocalDate;
+import com.mk.steps.data.Helper;
+
+import java.util.Date;
 
 public class Training {
 
     private int id;
-    private LocalDate date;
+    private Date date;
     private double distance;
     private int duration;
     private int type;
@@ -13,7 +15,7 @@ public class Training {
     public Training() {
     }
 
-    public Training(LocalDate date, double distance, int duration, int type) {
+    public Training(Date date, double distance, int duration, int type) {
         this.date = date;
         this.distance = distance;
         this.duration = duration;
@@ -22,7 +24,7 @@ public class Training {
 
     @Override
     public String toString() {
-        return date + " " + distance + " " + duration + " " + type;
+        return Helper.getStringDate(date) + " " + distance + " " + duration + " " + type;
     }
 
     public int getId() {
@@ -33,11 +35,11 @@ public class Training {
         this.id = id;
     }
 
-    public LocalDate getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(LocalDate date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 

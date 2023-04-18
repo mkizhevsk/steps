@@ -6,16 +6,15 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Binder;
-import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.mk.steps.data.DBHelper;
+import com.mk.steps.data.Helper;
 import com.mk.steps.data.entity.Training;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,13 +71,7 @@ public class BaseService extends Service {
     private ContentValues getTrainingContentValues(Training training) {
         ContentValues cv = new ContentValues();
 
-        String date = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-LL-dd");
-            date = formatter.format(training.getDate());
-        }
-
-        cv.put("date", date);
+        cv.put("date", Helper.getStringDate(training.getDate()));
         cv.put("distance", training.getDistance());
         cv.put("duration", training.getDuration());
         cv.put("type", training.getType());
@@ -117,7 +110,7 @@ public class BaseService extends Service {
 //        return note;
 //    }
 
-    private List<Training> getCursorTrainings(Cursor trainingCursor) {
+    private List<Training> getCursorTrainings(Cursor trainingCursor) throws ParseException {
         List<Training> trainings = new ArrayList<>();
 
         if (trainingCursor.moveToFirst()) {
@@ -130,10 +123,7 @@ public class BaseService extends Service {
             do {
                 Training training = new Training();
                 training.setId(trainingCursor.getInt(idColIndex));
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-LL-dd");
-                    training.setDate(LocalDate.parse(trainingCursor.getString(dateColIndex) , formatter));
-                }
+                training.setDate(Helper.getDateFromString(trainingCursor.getString(dateColIndex)));
                 training.setDistance(trainingCursor.getDouble(distanceColIndex));
                 training.setDuration(trainingCursor.getInt(durationColIndex));
                 training.setType(trainingCursor.getInt(typeColIndex));
@@ -145,7 +135,7 @@ public class BaseService extends Service {
         return trainings;
     }
 
-    public List<Training> getTrainings() {
+    public List<Training> getTrainings() throws ParseException {
         Log.d(TAG, "start getTrainings");
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 

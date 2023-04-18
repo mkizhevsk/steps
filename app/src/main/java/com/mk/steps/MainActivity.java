@@ -30,7 +30,8 @@ import com.mk.steps.data.service.BaseService;
 import com.mk.steps.data.service.RetrofitService;
 
 import java.text.DecimalFormat;
-import java.time.LocalDateTime;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 
 import retrofit2.Call;
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private double temperature;
 
     private double distanceInMeters = 0;
-    private LocalDateTime startDateTime;
+    private Date startDateTime;
 
     private Training training;
 
@@ -79,18 +80,25 @@ public class MainActivity extends AppCompatActivity {
         accuracyTextView = findViewById(R.id.accuracyTextView);
         df = new DecimalFormat("###.#");
 
-        if(Helper.checkPermissions(this, this)) {
-            Log.d(TAG, "permission granted by default");
+        Log.d(TAG, "onCreate " + Build.VERSION.SDK_INT);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startDateTime = LocalDateTime.now();
-                training = new Training(startDateTime.toLocalDate(), 0, 0, 1);
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (Helper.checkPermissions(this, this)) {
+                Log.d(TAG, "permission granted by default");
+                startApp();
             }
-
-            startBaseService();
-            getTemperature();
-            getLocation();
+        } else {
+            startApp();
         }
+    }
+
+    private void startApp() {
+        startDateTime = new Date(System.currentTimeMillis());
+        training = new Training(new Date(System.currentTimeMillis()), 0, 0, 1);
+
+        startBaseService();
+        getTemperature();
+        getLocation();
     }
 
     private void getTemperature() {
@@ -171,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
         } else if(start && !finish) {
             //finish training
             finish = true;
-
+            Log.d(TAG, "finish");
             training.setDuration(Helper.getDuration(startDateTime));
 
             editDistance();
@@ -225,10 +233,15 @@ public class MainActivity extends AppCompatActivity {
             baseService = binder.getService();
             Log.d(TAG, "MainActivity baseService onServiceConnected");
 
-            List<Training> trainings = baseService.getTrainings();
+            List<Training> trainings;
+            try {
+                trainings = baseService.getTrainings();
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
             Log.d(TAG, "trainings " + trainings.size());
             for(Training training : trainings) {
-                Log.d(TAG, training.getId() + training.toString());
+                Log.d(TAG, training.getId() + " " + training);
             }
         }
 
@@ -242,6 +255,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         Log.d(TAG, "Start onDestroy");
+
+        if(training.getId() == 0) {
+            saveTraining();
+        }
 
         stopService(new Intent(this, BaseService.class));
         if (baseServiceConnection != null) {
