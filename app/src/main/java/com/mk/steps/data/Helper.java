@@ -101,7 +101,7 @@ public class Helper {
     }
 
     public static String getStringDistance(double distance) {
-        return distance + " км";
+        return upToOneDecimalPlace(distance) + " км";
     }
 
     public static String getStringAccuracy(float accuracy) {
