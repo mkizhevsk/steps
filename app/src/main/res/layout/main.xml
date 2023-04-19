@@ -7,12 +7,14 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/temperatureTextView"
+        android:id="@+id/durationTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
+        android:text="0 мин."
+        android:textSize="25dp"
         app:layout_constraintBottom_toTopOf="@id/distanceTextView"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -23,40 +25,65 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="50dp"
         android:layout_marginRight="8dp"
+        android:text="0 км"
         android:textSize="70dp"
         app:layout_constraintBottom_toTopOf="@id/startFinishButton"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/temperatureTextView" />
+        app:layout_constraintTop_toBottomOf="@id/durationTextView" />
 
     <Button
         android:id="@+id/startFinishButton"
         android:layout_width="130dp"
         android:layout_height="70dp"
-        android:layout_marginTop="16dp"
         android:layout_weight="1"
         android:alpha="50"
+        android:background="@drawable/my_button"
         android:onClick="onClick"
         android:text="Start"
         android:textSize="20dp"
-        app:layout_constraintBottom_toTopOf="@id/accuracyTextView"
+        android:textColor="@color/greyText"
+        app:layout_constraintBottom_toTopOf="@id/weatherLocationRow"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/distanceTextView" />
 
-    <TextView
-        android:id="@+id/accuracyTextView"
-        android:layout_width="wrap_content"
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/weatherLocationRow"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginBottom="8dp"
-        android:text="TextView"
+        android:layout_marginBottom="30dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/startFinishButton" />
+        app:layout_constraintTop_toBottomOf="@id/startFinishButton">
+
+        <TextView
+            android:id="@+id/temperatureTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="no data"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/accuracyTextView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/accuracyTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="no fix"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/temperatureTextView"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>

@@ -9,7 +9,6 @@ import android.support.v4.content.ContextCompat;
 
 import com.mk.steps.data.entity.Training;
 
-import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,10 +21,10 @@ public class Helper {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-    public static String getStringDistance(double distanceInMeters) {
-        DecimalFormat df = new DecimalFormat("###.#");
-        return df.format(distanceInMeters /1000);
-    }
+//    public static String getStringDistance(double distanceInMeters) {
+//        DecimalFormat df = new DecimalFormat("###.#");
+//        return df.format(distanceInMeters /1000);
+//    }
 
     public static boolean checkPermissions(Context context, Activity mainActivity) {
         String[] permissions = new String[]{
@@ -58,7 +57,6 @@ public class Helper {
     }
 
     public static int getDuration(Date startDateTime) {
-        System.out.println(startDateTime);
         return (int) getDateDiff(startDateTime, new Date(System.currentTimeMillis()), TimeUnit.MINUTES);
     }
 
@@ -92,5 +90,21 @@ public class Helper {
 
     private static String getNewLine() {
         return System.getProperty("line.separator");
+    }
+
+    public static String getStringTemperature(double temperature) {
+        return upToOneDecimalPlace(temperature) + " C";
+    }
+
+    public static String getStringDuration(Date startDateTime) {
+        return getDuration(startDateTime) + " мин.";
+    }
+
+    public static String getStringDistance(double distance) {
+        return distance + " км";
+    }
+
+    public static String getStringAccuracy(float accuracy) {
+        return accuracy + " м";
     }
 }

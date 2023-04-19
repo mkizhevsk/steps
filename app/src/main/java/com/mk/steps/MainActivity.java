@@ -59,9 +59,10 @@ public class MainActivity extends AppCompatActivity {
 
     DecimalFormat df;
 
-    TextView temperatureTextView;
+    TextView durationTextView;
     TextView distanceTextView;
     Button startFinishButton;
+    TextView temperatureTextView;
     TextView accuracyTextView;
 
     String openWeatherAppId = "6e71959cff1c0c71a6049226d45c69a1";
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
+        durationTextView = findViewById(R.id.durationTextView);
         temperatureTextView = findViewById(R.id.temperatureTextView);
         distanceTextView = findViewById(R.id.distanceTextView);
         startFinishButton = findViewById(R.id.startFinishButton);
@@ -118,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
                 Weather weather = response.body();
                 temperature = weather.getMain().getTemp();
                 Log.d(TAG, " temperature " + weather.getVisibility() + " " + temperature);
-                temperatureTextView.setText(String.valueOf(temperature));
+                temperatureTextView.setText(Helper.getStringTemperature(temperature));
             }
 
             @Override
@@ -142,15 +144,17 @@ public class MainActivity extends AppCompatActivity {
                     firstLocationUnknown = false;
                 } else {
                     if(start && !finish) {
+                        durationTextView.setText(Helper.getStringDuration(startDateTime));
+
                         distanceInMeters += location.distanceTo(tempLocation);
                         tempLocation = location;
 
                         training.setDistance(distanceInMeters /1000);
-                        distanceTextView.setText(Helper.getStringFromDouble(training.getDistance()));
+                        distanceTextView.setText(Helper.getStringDistance(training.getDistance()));
                     }
                 }
 
-                accuracyTextView.setText(String.valueOf(location.getAccuracy()));
+                accuracyTextView.setText(Helper.getStringAccuracy(location.getAccuracy()));
                 Log.d(TAG, location.getProvider() + ",  скорость: " + location.getSpeed()
                         + ",  расстояние: " + distanceInMeters + ",  точность: " + location.getAccuracy());
             }
@@ -178,6 +182,9 @@ public class MainActivity extends AppCompatActivity {
             //start training
             startFinishButton.setText("Finish");
             start = true;
+
+            training.setDate(new Date(System.currentTimeMillis()));
+            distanceInMeters = 0;
         } else if(start && !finish) {
             //finish training
             finish = true;
