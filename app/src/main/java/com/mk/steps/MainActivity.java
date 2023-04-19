@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "saveTraining " + training.toString());
         if (training != null && training.getDistance() > 0) {
             training.setId((int) baseService.insertTraining(training));
-            Toast.makeText(this, "training was saved: " + training.getDistance() + " | " + training.getDuration(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "training was saved: " + Helper.upToOneDecimalPlace(training.getDistance()) + " | " + training.getDuration(), Toast.LENGTH_SHORT).show();
         }
     }
 
