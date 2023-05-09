@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">steps</string>
-    <string name="service_desc">SQLite service</string>
+    <string name="sqlite_service_desc">SQLite service</string>
+    <string name="location_service_desc">Location service</string>
 </resources>

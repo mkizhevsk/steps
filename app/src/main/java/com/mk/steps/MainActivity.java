@@ -1,19 +1,15 @@
 package com.mk.steps;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,7 +25,9 @@ import com.mk.steps.data.Helper;
 import com.mk.steps.data.Weather;
 import com.mk.steps.data.entity.Training;
 import com.mk.steps.data.service.BaseService;
+import com.mk.steps.data.service.LocationService;
 import com.mk.steps.data.service.RetrofitService;
+import com.mk.steps.data.thread.DurationRunnable;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -44,16 +42,15 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
-    private double temperature;
+    public static double distanceInMeters;
 
-    private int duration = 0;
-    private double distanceInMeters = 0;
-    //private Date startDateTime;
+    public static Location currentLocation;
+    public static List<Location> locationList;
 
-    private Training training;
+    public static Training training;
 
-    private boolean start = false;
-    private boolean finish = false;
+    public static boolean start;
+    private boolean finish;
 
     private TextView durationTextView;
     private TextView distanceTextView;
@@ -61,18 +58,21 @@ public class MainActivity extends AppCompatActivity {
     private TextView temperatureTextView;
     private TextView accuracyTextView;
 
-    private Date lastDateTime;
-    private Location currentLocation;
-    private List<Location> locationList;
+    private double temperature;
 
-    private final int CYCLE_DURATION = 2000;
-    private final int MINIMUM_DURATION = 60;
+    public static Date startDateTime;
+
+    private final int MINIMUM_DURATION = 1;
     private final int MINIMUM_DISTANCE = 500;
 
     private String openWeatherAppId = "6e71959cff1c0c71a6049226d45c69a1";
     private String openWeatherUnits = "metric";
 
+    public static Handler showDataHandler;
+    public static Handler durationHandler;
+
     private BaseService baseService;
+    private LocationService locationService;
 
     final String TAG = "myLogs";
 
@@ -89,6 +89,11 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onCreate " + Build.VERSION.SDK_INT);
 
+        //duration = 0;
+        distanceInMeters = 0;
+        start = false;
+        finish = false;
+
         if (Build.VERSION.SDK_INT >= 23) {
             if (Helper.checkPermissions(this, this)) {
                 Log.d(TAG, "permission granted by default");
@@ -103,9 +108,15 @@ public class MainActivity extends AppCompatActivity {
         training = new Training(new Date(System.currentTimeMillis()), 0, 0, 1);
         locationList = new ArrayList<>();
 
+        showDataHandler = getShowDataHandler();
+        durationHandler = getDurationHandler();
+
+        Thread playProgressThread = new Thread(new DurationRunnable());
+        playProgressThread.start();
+
         startBaseService();
+        startLocationService();
         getTemperature();
-        getLocation();
     }
 
     private void getTemperature() {
@@ -133,84 +144,52 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void getLocation() {
-        Log.d(TAG, "getLocation start");
-        // Acquire a reference to the system Location Manager
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+    // handlers
+    private Handler getShowDataHandler() {
+        return new Handler(message -> {
+            Log.d(TAG, "showDataHandler");
+            showLocationData();
 
-        // Define a listener that responds to location updates
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
-                System.out.println("onLocationChanged");
-                currentLocation = location;
-                Date currentDateTime = new Date(System.currentTimeMillis());
-                if (locationList.size() > 0) {
-                    calculateDuration(currentDateTime);
-                    calculateDistance(location);
-                    training.setDistanceFromMeters(distanceInMeters);
-                }
-                System.out.println("  " + locationList.size() + " " + duration + " " + distanceInMeters + " " + Helper.getStringAccuracy(currentLocation.getAccuracy()));
-
-                lastDateTime = currentDateTime;
-                locationList.add(location);
-                showLocationData();
-                Log.d(TAG, "Provider " + currentLocation.getProvider() + ",  скорость: " + currentLocation.getSpeed()
-                        + ",  расстояние: " + distanceInMeters + ",  точность: " + currentLocation.getAccuracy());
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                System.out.println("onStatusChanged");
-            }
-
-            public void onProviderEnabled(String provider) {
-                System.out.println("onProviderEnabled");
-            }
-
-            public void onProviderDisabled(String provider) {
-            }
-        };
-
-        // Register the listener with the Location Manager to receive location updates
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, CYCLE_DURATION, 0, locationListener);
+            return true;
+        });
     }
 
-    private void calculateDuration(Date currentDateTime) {
-        int tempDuration = Helper.getSecondsDuration(lastDateTime, currentDateTime);
-        if ((tempDuration <= (CYCLE_DURATION + 100)) && start)
-            duration += (CYCLE_DURATION / 1000);
-    }
+    private Handler getDurationHandler() {
+        return new Handler(message -> {
 
-    private void calculateDistance(Location location) {
-        if (start)
-            distanceInMeters += location.distanceTo(locationList.get(locationList.size() - 1));
+            if (startDateTime != null)
+                training.setDuration(Helper.getDuration(startDateTime));
+            Log.d(TAG, "durationHandler " + training.getDuration());
+
+            showLocationData();
+
+            return true;
+        });
     }
 
     private void showLocationData() {
-        durationTextView.setText(Helper.getStringDuration(duration));
+        durationTextView.setText(Helper.getStringDuration(training.getDuration()));
         distanceTextView.setText(Helper.getStringDistance(training.getDistance()));
         if(currentLocation != null) accuracyTextView.setText(Helper.getStringAccuracy(currentLocation.getAccuracy()));
     }
 
     public void onClick(View view) {
         if(!start && !finish) {  //start training
+            Log.d(TAG, "start button");
             startFinishButton.setText("Finish");
-            start = true;
 
-            lastDateTime = new Date(System.currentTimeMillis());
-            training.setDate(lastDateTime);
+            startDateTime = new Date(System.currentTimeMillis());
+            training.setDate(startDateTime);
+
             distanceInMeters = 0;
+            start = true;
         } else if(start && !finish) {  //finish training
-            finish = true;
-            Log.d(TAG, "finish");
-            //training.setDuration(Helper.getDuration(startDateTime));
-            training.setDuration(duration);
+            Log.d(TAG, "finish button");
+            training.setDuration(Helper.getDuration(startDateTime));
 
             showLocationData();
+            finish = true;
+
             editDistance();
         }
     }
@@ -301,7 +280,30 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceDisconnected(ComponentName name) {
 
-            Log.d(TAG, "MainActivity baseService onBaseServiceDisconnected");
+            Log.d(TAG, "MainActivity baseService onServiceDisconnected");
+        }
+    };
+
+    // LocationService
+    private void startLocationService() {
+        Log.d(TAG, "MainActivity startLocationService()");
+        Intent intent = new Intent(this, LocationService.class);
+        bindService(intent, locationServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private ServiceConnection locationServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            LocationService.LocalBinder binder = (LocationService.LocalBinder) service;
+            locationService = binder.getService();
+            Log.d(TAG, "MainActivity locationService onServiceConnected");
+
+            locationService.getLocation();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "MainActivity locationService onServiceDisconnected");
         }
     };
 
@@ -309,13 +311,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d(TAG, "Start onDestroy " + training.getId());
 
-        if (duration > MINIMUM_DURATION && distanceInMeters > MINIMUM_DISTANCE)
+        if (training.getDuration() > MINIMUM_DURATION && distanceInMeters > MINIMUM_DISTANCE)
             saveTraining();
 
+        DurationRunnable.running = false;
+
         stopService(new Intent(this, BaseService.class));
-        if (baseServiceConnection != null) {
+        if (baseServiceConnection != null)
             unbindService(baseServiceConnection);
-        }
+
+        stopService(new Intent(this, LocationService.class));
+        if (locationServiceConnection != null)
+            unbindService(locationServiceConnection);
+
+        currentLocation = null;
+        locationList = null;
+        training = null;
+        startDateTime = null;
 
         super.onDestroy();
     }

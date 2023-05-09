@@ -24,6 +24,9 @@
 
         <service
             android:name=".data.service.BaseService"
-            android:description="@string/service_desc" />
+            android:description="@string/sqlite_service_desc" />
+        <service
+            android:name=".data.service.LocationService"
+            android:description="@string/location_service_desc" />
     </application>
 </manifest>
