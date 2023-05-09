@@ -22,6 +22,10 @@ public class Training {
         this.type = type;
     }
 
+    public void setDistanceFromMeters(double distanceInMeters) {
+        this.distance = distanceInMeters / 1000;
+    }
+
     @Override
     public String toString() {
         return Helper.getStringDate(date) + " - " + distance + " - " + duration + " - " + type;

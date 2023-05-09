@@ -56,12 +56,15 @@ public class Helper {
         return ((double) intValue) / 10;
     }
 
-    public static int getDuration(Date startDateTime) {
+    public static int getSecondsDuration(Date lastDateTime, Date currentDateTime) {
+        return (int) getDateDiff(lastDateTime, currentDateTime, TimeUnit.SECONDS);
+    }
+
+    public static int getMinutesDuration(Date startDateTime) {
         return (int) getDateDiff(startDateTime, new Date(System.currentTimeMillis()), TimeUnit.MINUTES);
     }
 
     public static long getDateDiff(Date date1, Date date2, TimeUnit timeUnit) {
-        System.out.println("here " + date1 + " " + date2);
         long diffInMillies = date2.getTime() - date1.getTime();
         return timeUnit.convert(diffInMillies,TimeUnit.MILLISECONDS);
     }
@@ -96,8 +99,9 @@ public class Helper {
         return upToOneDecimalPlace(temperature) + " C";
     }
 
-    public static String getStringDuration(Date startDateTime) {
-        return getDuration(startDateTime) + " мин.";
+    public static String getStringDuration(int secondsDuration) {
+        int minutesDuration = (int) Math.round(((double) secondsDuration) / 60);
+        return minutesDuration + " мин.";
     }
 
     public static String getStringDistance(double distance) {

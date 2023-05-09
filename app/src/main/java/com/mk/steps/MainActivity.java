@@ -31,8 +31,8 @@ import com.mk.steps.data.entity.Training;
 import com.mk.steps.data.service.BaseService;
 import com.mk.steps.data.service.RetrofitService;
 
-import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -44,31 +44,35 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Location tempLocation;
-    private boolean firstLocationUnknown = true;
-
     private double temperature;
 
+    private int duration = 0;
     private double distanceInMeters = 0;
-    private Date startDateTime;
+    //private Date startDateTime;
 
     private Training training;
 
-    boolean start = false;
-    boolean finish = false;
+    private boolean start = false;
+    private boolean finish = false;
 
-    DecimalFormat df;
+    private TextView durationTextView;
+    private TextView distanceTextView;
+    private Button startFinishButton;
+    private TextView temperatureTextView;
+    private TextView accuracyTextView;
 
-    TextView durationTextView;
-    TextView distanceTextView;
-    Button startFinishButton;
-    TextView temperatureTextView;
-    TextView accuracyTextView;
+    private Date lastDateTime;
+    private Location currentLocation;
+    private List<Location> locationList;
 
-    String openWeatherAppId = "6e71959cff1c0c71a6049226d45c69a1";
-    String openWeatherUnits = "metric";
+    private final int CYCLE_DURATION = 2000;
+    private final int MINIMUM_DURATION = 60;
+    private final int MINIMUM_DISTANCE = 500;
 
-    BaseService baseService;
+    private String openWeatherAppId = "6e71959cff1c0c71a6049226d45c69a1";
+    private String openWeatherUnits = "metric";
+
+    private BaseService baseService;
 
     final String TAG = "myLogs";
 
@@ -82,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
         distanceTextView = findViewById(R.id.distanceTextView);
         startFinishButton = findViewById(R.id.startFinishButton);
         accuracyTextView = findViewById(R.id.accuracyTextView);
-        df = new DecimalFormat("###.#");
 
         Log.d(TAG, "onCreate " + Build.VERSION.SDK_INT);
 
@@ -97,8 +100,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startApp() {
-        startDateTime = new Date(System.currentTimeMillis());
         training = new Training(new Date(System.currentTimeMillis()), 0, 0, 1);
+        locationList = new ArrayList<>();
 
         startBaseService();
         getTemperature();
@@ -131,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getLocation() {
-        Log.d(TAG, "firstLocationUnknown");
+        Log.d(TAG, "getLocation start");
         // Acquire a reference to the system Location Manager
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
@@ -139,30 +142,29 @@ public class MainActivity extends AppCompatActivity {
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 // Called when a new location is found by the network location provider.
-                if(firstLocationUnknown) {
-                    tempLocation = location;
-                    firstLocationUnknown = false;
-                } else {
-                    if(start && !finish) {
-                        durationTextView.setText(Helper.getStringDuration(startDateTime));
-
-                        distanceInMeters += location.distanceTo(tempLocation);
-                        tempLocation = location;
-
-                        training.setDistance(distanceInMeters /1000);
-                        distanceTextView.setText(Helper.getStringDistance(training.getDistance()));
-                    }
+                System.out.println("onLocationChanged");
+                currentLocation = location;
+                Date currentDateTime = new Date(System.currentTimeMillis());
+                if (locationList.size() > 0) {
+                    calculateDuration(currentDateTime);
+                    calculateDistance(location);
+                    training.setDistanceFromMeters(distanceInMeters);
                 }
+                System.out.println("  " + locationList.size() + " " + duration + " " + distanceInMeters + " " + Helper.getStringAccuracy(currentLocation.getAccuracy()));
 
-                accuracyTextView.setText(Helper.getStringAccuracy(location.getAccuracy()));
-                Log.d(TAG, location.getProvider() + ",  скорость: " + location.getSpeed()
-                        + ",  расстояние: " + distanceInMeters + ",  точность: " + location.getAccuracy());
+                lastDateTime = currentDateTime;
+                locationList.add(location);
+                showLocationData();
+                Log.d(TAG, "Provider " + currentLocation.getProvider() + ",  скорость: " + currentLocation.getSpeed()
+                        + ",  расстояние: " + distanceInMeters + ",  точность: " + currentLocation.getAccuracy());
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
+                System.out.println("onStatusChanged");
             }
 
             public void onProviderEnabled(String provider) {
+                System.out.println("onProviderEnabled");
             }
 
             public void onProviderDisabled(String provider) {
@@ -174,30 +176,48 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, CYCLE_DURATION, 0, locationListener);
+    }
+
+    private void calculateDuration(Date currentDateTime) {
+        int tempDuration = Helper.getSecondsDuration(lastDateTime, currentDateTime);
+        if ((tempDuration <= (CYCLE_DURATION + 100)) && start)
+            duration += (CYCLE_DURATION / 1000);
+    }
+
+    private void calculateDistance(Location location) {
+        if (start)
+            distanceInMeters += location.distanceTo(locationList.get(locationList.size() - 1));
+    }
+
+    private void showLocationData() {
+        durationTextView.setText(Helper.getStringDuration(duration));
+        distanceTextView.setText(Helper.getStringDistance(training.getDistance()));
+        if(currentLocation != null) accuracyTextView.setText(Helper.getStringAccuracy(currentLocation.getAccuracy()));
     }
 
     public void onClick(View view) {
-        if(!start && !finish) {
-            //start training
+        if(!start && !finish) {  //start training
             startFinishButton.setText("Finish");
             start = true;
 
-            training.setDate(new Date(System.currentTimeMillis()));
+            lastDateTime = new Date(System.currentTimeMillis());
+            training.setDate(lastDateTime);
             distanceInMeters = 0;
-        } else if(start && !finish) {
-            //finish training
+        } else if(start && !finish) {  //finish training
             finish = true;
             Log.d(TAG, "finish");
-            training.setDuration(Helper.getDuration(startDateTime));
+            //training.setDuration(Helper.getDuration(startDateTime));
+            training.setDuration(duration);
 
+            showLocationData();
             editDistance();
         }
     }
 
     private void saveTraining() {
         Log.d(TAG, "saveTraining " + training.toString());
-        if (training != null && training.getDistance() > 0) {
+        if (training != null) {
             training.setId((int) baseService.insertTraining(training));
             Toast.makeText(this, "training was saved: " + Helper.upToOneDecimalPlace(training.getDistance()) + " | " + training.getDuration(), Toast.LENGTH_SHORT).show();
         }
@@ -289,10 +309,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d(TAG, "Start onDestroy " + training.getId());
 
-
-        if(training != null && training.getId() == 0) {
+        if (duration > MINIMUM_DURATION && distanceInMeters > MINIMUM_DISTANCE)
             saveTraining();
-        }
 
         stopService(new Intent(this, BaseService.class));
         if (baseServiceConnection != null) {
