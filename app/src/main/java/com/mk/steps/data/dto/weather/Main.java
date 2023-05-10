@@ -1,4 +1,4 @@
-package com.mk.steps.data;
+package com.mk.steps.data.dto.weather;
 
 import com.google.gson.annotations.SerializedName;
 

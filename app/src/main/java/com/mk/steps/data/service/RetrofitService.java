@@ -1,6 +1,6 @@
 package com.mk.steps.data.service;
 
-import com.mk.steps.data.Weather;
+import com.mk.steps.data.dto.weather.Weather;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;

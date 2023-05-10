@@ -21,11 +21,6 @@ public class Helper {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-//    public static String getStringDistance(double distanceInMeters) {
-//        DecimalFormat df = new DecimalFormat("###.#");
-//        return df.format(distanceInMeters /1000);
-//    }
-
     public static boolean checkPermissions(Context context, Activity mainActivity) {
         String[] permissions = new String[]{
                 Manifest.permission.ACCESS_FINE_LOCATION,

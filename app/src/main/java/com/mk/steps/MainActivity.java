@@ -22,23 +22,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mk.steps.data.Helper;
-import com.mk.steps.data.Weather;
+import com.mk.steps.data.WeatherProvider;
 import com.mk.steps.data.entity.Training;
 import com.mk.steps.data.service.BaseService;
 import com.mk.steps.data.service.LocationService;
-import com.mk.steps.data.service.RetrofitService;
 import com.mk.steps.data.thread.DurationRunnable;
 
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -65,11 +58,9 @@ public class MainActivity extends AppCompatActivity {
     private final int MINIMUM_DURATION = 1;
     private final int MINIMUM_DISTANCE = 500;
 
-    private String openWeatherAppId = "6e71959cff1c0c71a6049226d45c69a1";
-    private String openWeatherUnits = "metric";
-
     public static Handler showDataHandler;
     public static Handler durationHandler;
+    public static Handler weatherHandler;
 
     private BaseService baseService;
     private LocationService locationService;
@@ -89,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onCreate " + Build.VERSION.SDK_INT);
 
-        //duration = 0;
         distanceInMeters = 0;
         start = false;
         finish = false;
@@ -110,38 +100,11 @@ public class MainActivity extends AppCompatActivity {
 
         showDataHandler = getShowDataHandler();
         durationHandler = getDurationHandler();
-
-        Thread playProgressThread = new Thread(new DurationRunnable());
-        playProgressThread.start();
+        weatherHandler = getWeatherHandler();
 
         startBaseService();
         startLocationService();
-        getTemperature();
-    }
-
-    private void getTemperature() {
-        Log.d(TAG, "temperature start");
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.openweathermap.org/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        RetrofitService api = retrofit.create(RetrofitService.class);
-
-        api.loadPojoCityWeather(openWeatherAppId, openWeatherUnits, "izhevsk").enqueue(new Callback<Weather>() {
-            @Override
-            public void onResponse(Call<Weather> call, Response<Weather> response) {
-                Weather weather = response.body();
-                temperature = weather.getMain().getTemp();
-                Log.d(TAG, " temperature " + weather.getVisibility() + " " + temperature);
-                temperatureTextView.setText(Helper.getStringTemperature(temperature));
-            }
-
-            @Override
-            public void onFailure(Call<Weather> call, Throwable t) {
-
-            }
-        });
+        WeatherProvider.getInstance().getTemperature();
     }
 
     // handlers
@@ -156,13 +119,24 @@ public class MainActivity extends AppCompatActivity {
 
     private Handler getDurationHandler() {
         return new Handler(message -> {
-
-            if (startDateTime != null)
+            if (startDateTime != null && start && !finish)
                 training.setDuration(Helper.getDuration(startDateTime));
-            Log.d(TAG, "durationHandler " + training.getDuration());
 
             showLocationData();
 
+            Log.d(TAG, "durationHandler " + training.getDuration());
+            return true;
+        });
+    }
+
+    private Handler getWeatherHandler() {
+        return new Handler(message -> {
+            Bundle bundle = message.getData();
+            temperature = bundle.getDouble("temperature");
+
+            temperatureTextView.setText(Helper.getStringTemperature(temperature));
+
+            Log.d(TAG, "weatherHandler " + temperature);
             return true;
         });
     }
@@ -176,22 +150,33 @@ public class MainActivity extends AppCompatActivity {
     public void onClick(View view) {
         if(!start && !finish) {  //start training
             Log.d(TAG, "start button");
-            startFinishButton.setText("Finish");
-
-            startDateTime = new Date(System.currentTimeMillis());
-            training.setDate(startDateTime);
-
-            distanceInMeters = 0;
-            start = true;
+            startTraining();
         } else if(start && !finish) {  //finish training
             Log.d(TAG, "finish button");
-            training.setDuration(Helper.getDuration(startDateTime));
-
-            showLocationData();
-            finish = true;
-
-            editDistance();
+            finishTraining();
         }
+    }
+
+    private void startTraining() {
+        startFinishButton.setText("Finish");
+
+        startDateTime = new Date(System.currentTimeMillis());
+        training.setDate(startDateTime);
+
+        Thread playProgressThread = new Thread(new DurationRunnable());
+        playProgressThread.start();
+
+        distanceInMeters = 0;
+        start = true;
+    }
+
+    private void finishTraining() {
+        training.setDuration(Helper.getDuration(startDateTime));
+
+        showLocationData();
+        finish = true;
+
+        editDistance();
     }
 
     private void saveTraining() {
