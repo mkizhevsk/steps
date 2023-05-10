@@ -24,8 +24,6 @@ import android.util.Log;
 import com.mk.steps.MainActivity;
 import com.mk.steps.data.Helper;
 
-import java.util.Date;
-
 public class LocationService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
@@ -72,7 +70,6 @@ public class LocationService extends Service {
                 // Called when a new location is found by the network location provider.
                 System.out.println("onLocationChanged");
                 currentLocation = location;
-                Date currentDateTime = new Date(System.currentTimeMillis());
                 if (locationList.size() > 0) {
                     calculateDistance(location);
                     training.setDistanceFromMeters(distanceInMeters);
@@ -86,11 +83,9 @@ public class LocationService extends Service {
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
-                //System.out.println("onStatusChanged");
             }
 
             public void onProviderEnabled(String provider) {
-                //System.out.println("onProviderEnabled");
             }
 
             public void onProviderDisabled(String provider) {

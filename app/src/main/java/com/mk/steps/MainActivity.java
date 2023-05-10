@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static Location currentLocation;
     public static List<Location> locationList;
-
     public static Training training;
 
     public static boolean start;
@@ -53,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
     private double temperature;
 
-    public static Date startDateTime;
+    private Date startDateTime;
 
     private final int MINIMUM_DURATION = 1;
     private final int MINIMUM_DISTANCE = 500;
@@ -163,8 +162,8 @@ public class MainActivity extends AppCompatActivity {
         startDateTime = new Date(System.currentTimeMillis());
         training.setDate(startDateTime);
 
-        Thread playProgressThread = new Thread(new DurationRunnable());
-        playProgressThread.start();
+        Thread durationThread = new Thread(new DurationRunnable());
+        durationThread.start();
 
         distanceInMeters = 0;
         start = true;
@@ -312,7 +311,6 @@ public class MainActivity extends AppCompatActivity {
         currentLocation = null;
         locationList = null;
         training = null;
-        startDateTime = null;
 
         super.onDestroy();
     }
