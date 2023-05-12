@@ -1,6 +1,9 @@
 package com.mk.steps.data.service;
 
 import com.mk.steps.data.dto.weather.Weather;
+import com.mk.steps.data.entity.Training;
+
+import java.util.Date;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -14,4 +17,7 @@ public interface RetrofitService {
 
     @GET("/data/2.5/weather")
     Call<Weather> loadPojoCityWeather(@Query("APPID") String appId, @Query("units") String units, @Query("q") String city);
+
+    @GET("/products")
+    Call<ResponseBody> saveTraining(@Query("date") String date, @Query("distance") double distance, @Query("duration") int duration, @Query("type") int type);
 }

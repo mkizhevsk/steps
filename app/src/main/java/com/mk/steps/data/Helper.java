@@ -8,6 +8,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
 import com.mk.steps.data.entity.Training;
+import com.mk.steps.data.service.RetrofitService;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -16,6 +17,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Helper {
 
@@ -100,5 +104,14 @@ public class Helper {
 
     public static String getStringAccuracy(float accuracy) {
         return accuracy + " м";
+    }
+
+    public static RetrofitService getRetrofitApiWithUrl(String url) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(url)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        return retrofit.create(RetrofitService.class);
     }
 }

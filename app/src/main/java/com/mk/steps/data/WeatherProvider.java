@@ -11,19 +11,18 @@ import com.mk.steps.data.service.RetrofitService;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class WeatherProvider {
 
     private static WeatherProvider ourInstance = new WeatherProvider();
-
     public static WeatherProvider getInstance() {
         return ourInstance;
     }
 
-    private String openWeatherAppId = "6e71959cff1c0c71a6049226d45c69a1";
-    private String openWeatherUnits = "metric";
+    private final String OPEN_WEATHER_API_URL = "https://api.openweathermap.org";
+    private final String OPEN_WEATHER_APP_ID = "6e71959cff1c0c71a6049226d45c69a1";
+    private final String OPEN_WEATHER_UNITS = "metric";
+    private final String OPEN_WEATHER_CITY = "izhevsk";
 
     final String TAG = "myLogs";
 
@@ -32,14 +31,12 @@ public class WeatherProvider {
 
     public void getTemperature() {
         Log.d(TAG, "temperature start");
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.openweathermap.org/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
 
-        RetrofitService api = retrofit.create(RetrofitService.class);
+        RetrofitService api =Helper.getRetrofitApiWithUrl(OPEN_WEATHER_API_URL);
 
-        api.loadPojoCityWeather(openWeatherAppId, openWeatherUnits, "izhevsk").enqueue(new Callback<Weather>() {
+        api.loadPojoCityWeather(OPEN_WEATHER_APP_ID, OPEN_WEATHER_UNITS, OPEN_WEATHER_CITY)
+                .enqueue(new Callback<Weather>() {
+
             @Override
             public void onResponse(Call<Weather> call, Response<Weather> response) {
                 Weather weather = response.body();
