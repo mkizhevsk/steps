@@ -34,6 +34,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+
 public class MainActivity extends AppCompatActivity {
 
     public static double distanceInMeters;
@@ -88,6 +91,8 @@ public class MainActivity extends AppCompatActivity {
             if (Helper.checkPermissions(this, this)) {
                 Log.d(TAG, "permission granted by default");
                 startApp();
+            } else {
+                // todo quit
             }
         } else {
             startApp();
