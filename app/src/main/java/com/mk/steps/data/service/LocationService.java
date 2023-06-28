@@ -28,7 +28,7 @@ public class LocationService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
 
-    private final int CYCLE_DURATION = 2000;
+    private final int CYCLE_DURATION = 3000;
 
     final String TAG = "myLogs";
 
@@ -70,7 +70,7 @@ public class LocationService extends Service {
                 // Called when a new location is found by the network location provider.
                 System.out.println("onLocationChanged");
                 currentLocation = location;
-                if (locationList.size() > 0) {
+                if (locationList != null && locationList.size() > 0) {
                     calculateDistance(location);
                     training.setDistanceFromMeters(distanceInMeters);
                 }

@@ -105,7 +105,9 @@ public class Helper {
     }
 
     public static String getStringAccuracy(float accuracy) {
-        return accuracy + " м";
+        int intAccuracy = Math.round(accuracy * 10);
+        double doubleAccuracy = ((double) intAccuracy) / 10;
+        return doubleAccuracy + " м";
     }
 
     public static RetrofitService getRetrofitApiWithUrl(String url) {
