@@ -64,20 +64,20 @@ public class LocationService extends Service {
         // Acquire a reference to the system Location Manager
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
-        // Define a listener that responds to location updates
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
                 System.out.println("onLocationChanged");
+
                 currentLocation = location;
+
                 if (locationList != null && locationList.size() > 0) {
                     calculateDistance(location);
                     training.setDistanceFromMeters(distanceInMeters);
                 }
-                System.out.println("  " + locationList.size() + " " + distanceInMeters + " " + Helper.getStringAccuracy(currentLocation.getAccuracy()));
 
                 locationList.add(location);
                 MainActivity.showDataHandler.sendEmptyMessage(1);
+
                 Log.d(TAG, "Provider " + currentLocation.getProvider() + ",  скорость: " + currentLocation.getSpeed()
                         + ",  расстояние: " + distanceInMeters + ",  точность: " + currentLocation.getAccuracy());
             }
