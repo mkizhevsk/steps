@@ -9,6 +9,7 @@ public class DurationRunnable implements Runnable {
 
     public static boolean running = false;
     private static final String TAG = "MainActivity";
+    private static long PAUSE_TIME = 10000;
 
     public void run() {
         running = true;
@@ -16,7 +17,7 @@ public class DurationRunnable implements Runnable {
         try {
             while (running) {
                 durationHandler.sendMessage(new Message());
-                Thread.sleep(10000);
+                Thread.sleep(PAUSE_TIME);
             }
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);

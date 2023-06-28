@@ -302,9 +302,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        Log.d(TAG, "Start onDestroy " + training.getId());
+        Log.d(TAG, "Start onDestroy");
 
-        if (training.getDuration() > MINIMUM_DURATION && distanceInMeters > MINIMUM_DISTANCE)
+        if (training != null && training.getDuration() > MINIMUM_DURATION && distanceInMeters > MINIMUM_DISTANCE)
             saveTraining();
 
         DurationRunnable.running = false;
