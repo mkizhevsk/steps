@@ -17,7 +17,7 @@ public class TinyFitnessProvider {
         return ourInstance;
     }
 
-    private final String TINY_FITNESS_URL = "http://tiny-fitness.ru";
+    private final String TINY_FITNESS_URL = "http://tiny-fitness.ru/api";
 
     final String TAG = "myLogs";
 
