@@ -1,8 +1,6 @@
 package com.mk.steps.data.service;
 
 import static com.mk.steps.MainActivity.currentLocation;
-import static com.mk.steps.MainActivity.distanceInMeters;
-import static com.mk.steps.MainActivity.locationList;
 import static com.mk.steps.MainActivity.start;
 import static com.mk.steps.MainActivity.training;
 
@@ -22,12 +20,12 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.mk.steps.MainActivity;
-import com.mk.steps.data.Helper;
 
 public class LocationService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
 
+    private float distanceInMeters;
     private final int CYCLE_DURATION = 3000;
 
     final String TAG = "myLogs";
@@ -68,14 +66,18 @@ public class LocationService extends Service {
             public void onLocationChanged(Location location) {
                 System.out.println("onLocationChanged");
 
-                currentLocation = location;
+                /*currentLocation = location;
 
                 if (locationList != null && locationList.size() > 0) {
                     calculateDistance(location);
                     training.setDistanceFromMeters(distanceInMeters);
                 }
 
-                locationList.add(location);
+                locationList.add(location);*/
+
+                if(currentLocation != null)
+                    calculateDistance(location);
+
                 MainActivity.showDataHandler.sendEmptyMessage(1);
 
                 Log.d(TAG, "Provider " + currentLocation.getProvider() + ",  скорость: " + currentLocation.getSpeed()
@@ -101,7 +103,10 @@ public class LocationService extends Service {
     }
 
     private void calculateDistance(Location location) {
-        if (start)
-            distanceInMeters += location.distanceTo(locationList.get(locationList.size() - 1));
+        if (start) {
+            distanceInMeters += location.distanceTo(currentLocation);
+            training.setDistance(distanceInMeters);
+        }
+//            distanceInMeters += location.distanceTo(locationList.get(locationList.size() - 1));
     }
 }

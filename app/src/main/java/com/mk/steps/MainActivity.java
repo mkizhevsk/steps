@@ -30,19 +30,15 @@ import com.mk.steps.data.service.LocationService;
 import com.mk.steps.data.thread.DurationRunnable;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-
 public class MainActivity extends AppCompatActivity {
 
-    public static double distanceInMeters;
+    //public static float distanceInMeters;
 
     public static Location currentLocation;
-    public static List<Location> locationList;
+    //public static List<Location> locationList;
     public static Training training;
 
     public static boolean start;
@@ -83,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onCreate " + Build.VERSION.SDK_INT);
 
-        distanceInMeters = 0;
+        //distanceInMeters = 0;
         start = false;
         finish = false;
 
@@ -101,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startApp() {
         training = new Training(new Date(System.currentTimeMillis()), 0, 0, 1);
-        locationList = new ArrayList<>();
+        //locationList = new ArrayList<>();
 
         showDataHandler = getShowDataHandler();
         durationHandler = getDurationHandler();
@@ -171,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         Thread durationThread = new Thread(new DurationRunnable());
         durationThread.start();
 
-        distanceInMeters = 0;
+        //distanceInMeters = 0;
         start = true;
     }
 
@@ -208,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                         (dialog, id) -> {
                             Log.d(TAG, "from input: " + training.getDistance());
 
-                            training.setDistance(Double.parseDouble(String.valueOf(distanceInput.getText())));
+                            training.setDistance(Float.parseFloat(String.valueOf(distanceInput.getText())));
                             saveTraining();
 
                             distanceTextView.setText(String.valueOf(training.getDistance()));
@@ -304,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d(TAG, "Start onDestroy");
 
-        if (training != null && training.getDuration() > MINIMUM_DURATION && distanceInMeters > MINIMUM_DISTANCE)
+        if (training != null && training.getDuration() > MINIMUM_DURATION && training.getDistance() > MINIMUM_DISTANCE)
             saveTraining();
 
         DurationRunnable.running = false;
@@ -318,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
             unbindService(locationServiceConnection);
 
         currentLocation = null;
-        locationList = null;
+        //locationList = null;
         training = null;
 
         super.onDestroy();
