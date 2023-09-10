@@ -1,8 +1,6 @@
 package com.mk.steps.data.service;
 
-import static com.mk.steps.MainActivity.currentLocation;
 import static com.mk.steps.MainActivity.start;
-import static com.mk.steps.MainActivity.training;
 
 import android.Manifest;
 import android.app.Service;
@@ -15,6 +13,7 @@ import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -25,14 +24,17 @@ public class LocationService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
 
+    private Location currentLocation;
     private float distanceInMeters;
-    private final int CYCLE_DURATION = 3000;
+    private final int CYCLE_DURATION = 5000;
+    private final float MIN_DISTANCE = 5;
 
     final String TAG = "myLogs";
 
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "LocationService onCreate");
+        clearDistance();
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -60,28 +62,21 @@ public class LocationService extends Service {
     public void getLocation() {
         Log.d(TAG, "getLocation start");
         // Acquire a reference to the system Location Manager
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
 
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                System.out.println("onLocationChanged");
+                Log.d(TAG, "onLocationChanged");
 
-                /*currentLocation = location;
-
-                if (locationList != null && locationList.size() > 0) {
-                    calculateDistance(location);
-                    training.setDistanceFromMeters(distanceInMeters);
-                }
-
-                locationList.add(location);*/
-
-                if(currentLocation != null)
+                if(currentLocation != null && start)
                     calculateDistance(location);
 
-                MainActivity.showDataHandler.sendEmptyMessage(1);
+                currentLocation = location;
 
-                Log.d(TAG, "Provider " + currentLocation.getProvider() + ",  скорость: " + currentLocation.getSpeed()
-                        + ",  расстояние: " + distanceInMeters + ",  точность: " + currentLocation.getAccuracy());
+                MainActivity.locationHandler.sendMessage(getLocationMessage(location.getAccuracy()));
+
+                Log.d(TAG, "Provider " + location.getProvider() + ",  скорость: " + location.getSpeed()
+                        + ",  расстояние: " + distanceInMeters + ",  точность: " + location.getAccuracy());
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -99,14 +94,25 @@ public class LocationService extends Service {
             return;
         }
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, CYCLE_DURATION, 0, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, CYCLE_DURATION, MIN_DISTANCE, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, CYCLE_DURATION, MIN_DISTANCE, locationListener);
+    }
+
+    public void clearDistance() {
+        this.distanceInMeters = 0;
+    }
+
+    private Message getLocationMessage(float accuracy) {
+        Bundle bundle = new Bundle();
+        bundle.putFloatArray("locationInfo", new float[] {distanceInMeters/1000, accuracy});
+
+        Message message = new Message();
+        message.setData(bundle);
+
+        return message;
     }
 
     private void calculateDistance(Location location) {
-        if (start) {
             distanceInMeters += location.distanceTo(currentLocation);
-            training.setDistance(distanceInMeters);
-        }
-//            distanceInMeters += location.distanceTo(locationList.get(locationList.size() - 1));
     }
 }

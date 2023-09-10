@@ -4,10 +4,29 @@ import java.util.Date;
 
 public class Training {
 
+    /**
+     * sqlite id
+     */
     private int id;
+
+    /**
+     * training date
+     */
     private Date date;
+
+    /**
+     * distance in km
+     */
     private float distance;
+
+    /**
+     * duration in km
+     */
     private int duration;
+
+    /**
+     * 1 - running
+     */
     private int type;
 
     public Training() {
@@ -19,10 +38,6 @@ public class Training {
         this.duration = duration;
         this.type = type;
     }
-
-//    public void setDistanceFromMeters(float distanceInMeters) {
-//        this.distance = distanceInMeters / 1000;
-//    }
 
     public int getId() {
         return id;

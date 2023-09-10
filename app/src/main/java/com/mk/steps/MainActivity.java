@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,11 +34,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    //public static float distanceInMeters;
-
-    public static Location currentLocation;
-    //public static List<Location> locationList;
-    public static Training training;
+    private Training training;
 
     public static boolean start;
     private boolean finish;
@@ -51,13 +46,13 @@ public class MainActivity extends AppCompatActivity {
     private TextView accuracyTextView;
 
     private double temperature;
-
+    private float accuracy = 0;
     private Date startDateTime;
 
     private final int MINIMUM_DURATION = 1;
     private final int MINIMUM_DISTANCE = 500;
 
-    public static Handler showDataHandler;
+    public static Handler locationHandler;
     public static Handler durationHandler;
     public static Handler weatherHandler;
 
@@ -79,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onCreate " + Build.VERSION.SDK_INT);
 
-        //distanceInMeters = 0;
         start = false;
         finish = false;
 
@@ -97,9 +91,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void startApp() {
         training = new Training(new Date(System.currentTimeMillis()), 0, 0, 1);
-        //locationList = new ArrayList<>();
 
-        showDataHandler = getShowDataHandler();
+        locationHandler = getLocationHandler();
         durationHandler = getDurationHandler();
         weatherHandler = getWeatherHandler();
 
@@ -109,9 +102,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // handlers
-    private Handler getShowDataHandler() {
+    private Handler getLocationHandler() {
         return new Handler(message -> {
-            Log.d(TAG, "showDataHandler");
+            Log.d(TAG, "locationHandler");
+
+            Bundle bundle = message.getData();
+            float[] locationInfo = bundle.getFloatArray("locationInfo");
+
+            if(locationInfo != null && locationInfo.length > 1) {
+                accuracy = locationInfo[1];
+                if(start)
+                    training.setDistance(locationInfo[0]);
+            }
+
             showLocationData();
 
             return true;
@@ -120,24 +123,26 @@ public class MainActivity extends AppCompatActivity {
 
     private Handler getDurationHandler() {
         return new Handler(message -> {
+            Log.d(TAG, "durationHandler");
+
             if (startDateTime != null && start && !finish)
                 training.setDuration(Helper.getDuration(startDateTime));
 
             showLocationData();
 
-            //Log.d(TAG, "durationHandler " + training.getDuration());
             return true;
         });
     }
 
     private Handler getWeatherHandler() {
         return new Handler(message -> {
+            Log.d(TAG, "weatherHandler");
+
             Bundle bundle = message.getData();
             temperature = bundle.getDouble("temperature");
 
             temperatureTextView.setText(Helper.getStringTemperature(temperature));
 
-            Log.d(TAG, "weatherHandler " + temperature);
             return true;
         });
     }
@@ -145,7 +150,8 @@ public class MainActivity extends AppCompatActivity {
     private void showLocationData() {
         durationTextView.setText(Helper.getStringDuration(training.getDuration()));
         distanceTextView.setText(Helper.getStringDistance(training.getDistance()));
-        if(currentLocation != null) accuracyTextView.setText(Helper.getStringAccuracy(currentLocation.getAccuracy()));
+        if(accuracy > 0)
+            accuracyTextView.setText(Helper.getStringAccuracy(accuracy));
     }
 
     public void onClick(View view) {
@@ -163,11 +169,12 @@ public class MainActivity extends AppCompatActivity {
 
         startDateTime = new Date(System.currentTimeMillis());
         training.setDate(startDateTime);
+        if(locationService != null)
+            locationService.clearDistance();
 
         Thread durationThread = new Thread(new DurationRunnable());
         durationThread.start();
 
-        //distanceInMeters = 0;
         start = true;
     }
 
@@ -313,10 +320,9 @@ public class MainActivity extends AppCompatActivity {
         if (locationServiceConnection != null)
             unbindService(locationServiceConnection);
 
-        currentLocation = null;
-        //locationList = null;
         training = null;
 
         super.onDestroy();
     }
+
 }
