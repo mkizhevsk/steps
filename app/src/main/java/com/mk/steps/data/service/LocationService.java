@@ -26,8 +26,10 @@ public class LocationService extends Service {
 
     private Location currentLocation;
     private float distanceInMeters;
-    private final int CYCLE_DURATION = 5000;
-    private final float MIN_DISTANCE = 5;
+
+    private final int CYCLE_DURATION = 2000;
+    private final float MIN_DISTANCE = 0;
+    private final String NETWORK_PROVIDER = "network";
 
     final String TAG = "myLogs";
 
@@ -73,7 +75,7 @@ public class LocationService extends Service {
 
                 currentLocation = location;
 
-                MainActivity.locationHandler.sendMessage(getLocationMessage(location.getAccuracy()));
+                MainActivity.locationHandler.sendMessage(getLocationMessage(location));
 
                 Log.d(TAG, "Provider " + location.getProvider() + ",  скорость: " + location.getSpeed()
                         + ",  расстояние: " + distanceInMeters + ",  точность: " + location.getAccuracy());
@@ -102,9 +104,9 @@ public class LocationService extends Service {
         this.distanceInMeters = 0;
     }
 
-    private Message getLocationMessage(float accuracy) {
+    private Message getLocationMessage(Location location) {
         Bundle bundle = new Bundle();
-        bundle.putFloatArray("locationInfo", new float[] {distanceInMeters/1000, accuracy});
+        bundle.putFloatArray("locationInfo", new float[] {distanceInMeters, location.getAccuracy(), location.getSpeed()});
 
         Message message = new Message();
         message.setData(bundle);
@@ -113,6 +115,14 @@ public class LocationService extends Service {
     }
 
     private void calculateDistance(Location location) {
-            distanceInMeters += location.distanceTo(currentLocation);
+        if (location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentLocation.getAccuracy())
+            return;
+
+        float distance = location.distanceTo(currentLocation);
+        Log.d(TAG, String.valueOf(distance));
+
+        if (location.getSpeed() > 0) {
+            distanceInMeters += distance;
+        }
     }
 }

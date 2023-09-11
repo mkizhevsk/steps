@@ -41,12 +41,14 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView durationTextView;
     private TextView distanceTextView;
+    private TextView speedTextView;
     private Button startFinishButton;
     private TextView temperatureTextView;
     private TextView accuracyTextView;
 
     private double temperature;
     private float accuracy = 0;
+    private float speed = 0;
     private Date startDateTime;
 
     private final int MINIMUM_DURATION = 1;
@@ -69,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         durationTextView = findViewById(R.id.durationTextView);
         temperatureTextView = findViewById(R.id.temperatureTextView);
         distanceTextView = findViewById(R.id.distanceTextView);
+        speedTextView = findViewById(R.id.speedTextView);
         startFinishButton = findViewById(R.id.startFinishButton);
         accuracyTextView = findViewById(R.id.accuracyTextView);
 
@@ -104,15 +107,16 @@ public class MainActivity extends AppCompatActivity {
     // handlers
     private Handler getLocationHandler() {
         return new Handler(message -> {
-            Log.d(TAG, "locationHandler");
 
             Bundle bundle = message.getData();
             float[] locationInfo = bundle.getFloatArray("locationInfo");
+            Log.d(TAG, "locationHandler " + locationInfo[0] + " " + locationInfo[1] + " " + locationInfo[2]);
 
-            if(locationInfo != null && locationInfo.length > 1) {
+            if(locationInfo != null && locationInfo.length > 2) {
                 accuracy = locationInfo[1];
+                speed = locationInfo[2];
                 if(start)
-                    training.setDistance(locationInfo[0]);
+                    training.setDistance(locationInfo[0] / 1000);
             }
 
             showLocationData();
@@ -149,9 +153,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void showLocationData() {
         durationTextView.setText(Helper.getStringDuration(training.getDuration()));
+
         distanceTextView.setText(Helper.getStringDistance(training.getDistance()));
+
         if(accuracy > 0)
             accuracyTextView.setText(Helper.getStringAccuracy(accuracy));
+
+        if(speed > 0)
+            speedTextView.setText(String.valueOf(speed));
     }
 
     public void onClick(View view) {

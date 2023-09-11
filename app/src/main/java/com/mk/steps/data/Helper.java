@@ -53,8 +53,8 @@ public class Helper {
     }
 
     public static double upToOneDecimalPlace(double value) {
-        long intValue = Math.round(value * 10);
-        return ((double) intValue) / 10;
+        long longValue = Math.round(value * 10);
+        return ((double) longValue) / 10;
     }
 
     public static int getDuration(Date startDateTime) {
@@ -100,7 +100,7 @@ public class Helper {
         return duration + " мин.";
     }
 
-    public static String getStringDistance(double distance) {
+    public static String getStringDistance(float distance) {
         return upToOneDecimalPlace(distance) + " км";
     }
 
