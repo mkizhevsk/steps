@@ -8,10 +8,11 @@ import android.util.Log;
 public class DurationRunnable implements Runnable {
 
     public static boolean running = false;
-    private static final String TAG = "MainActivity";
-    private static long PAUSE_TIME = 10000;
+    private static final String TAG = "myLogs";
+    private static long PAUSE_TIME = 1000;
 
     public void run() {
+        Log.d(TAG, "DurationRunnable run");
         running = true;
 
         try {

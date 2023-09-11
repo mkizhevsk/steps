@@ -1,34 +1,42 @@
 package com.mk.steps.data.entity;
 
-import com.mk.steps.data.Helper;
-
 import java.util.Date;
 
 public class Training {
 
+    /**
+     * sqlite id
+     */
     private int id;
+
+    /**
+     * training date
+     */
     private Date date;
-    private double distance;
+
+    /**
+     * distance in km
+     */
+    private float distance;
+
+    /**
+     * duration in km
+     */
     private int duration;
+
+    /**
+     * 1 - running
+     */
     private int type;
 
     public Training() {
     }
 
-    public Training(Date date, double distance, int duration, int type) {
+    public Training(Date date, float distance, int duration, int type) {
         this.date = date;
         this.distance = distance;
         this.duration = duration;
         this.type = type;
-    }
-
-    public void setDistanceFromMeters(double distanceInMeters) {
-        this.distance = distanceInMeters / 1000;
-    }
-
-    @Override
-    public String toString() {
-        return Helper.getStringDate(date) + " - " + distance + " - " + duration + " - " + type;
     }
 
     public int getId() {
@@ -47,11 +55,11 @@ public class Training {
         this.date = date;
     }
 
-    public double getDistance() {
+    public float getDistance() {
         return distance;
     }
 
-    public void setDistance(double distance) {
+    public void setDistance(float distance) {
         this.distance = distance;
     }
 
@@ -69,5 +77,16 @@ public class Training {
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "Training{" +
+                "id=" + id +
+                ", date=" + date +
+                ", distance=" + distance +
+                ", duration=" + duration +
+                ", type=" + type +
+                '}';
     }
 }

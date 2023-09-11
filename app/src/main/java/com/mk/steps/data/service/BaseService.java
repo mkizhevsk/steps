@@ -125,7 +125,7 @@ public class BaseService extends Service {
                 Training training = new Training();
                 training.setId(trainingCursor.getInt(idColIndex));
                 training.setDate(Helper.getDateFromString(trainingCursor.getString(dateColIndex)));
-                training.setDistance(trainingCursor.getDouble(distanceColIndex));
+                training.setDistance(trainingCursor.getFloat(distanceColIndex));
                 training.setDuration(trainingCursor.getInt(durationColIndex));
                 training.setType(trainingCursor.getInt(typeColIndex));
 
