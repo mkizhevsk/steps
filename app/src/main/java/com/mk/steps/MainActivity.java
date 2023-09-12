@@ -61,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
     private BaseService baseService;
     private LocationService locationService;
 
+    private int DURATION_COUNTER = 0;
+    private int DURATION_COUNTER_LIMIT = 60;
+
     final String TAG = "myLogs";
 
     @Override
@@ -107,20 +110,21 @@ public class MainActivity extends AppCompatActivity {
     // handlers
     private Handler getLocationHandler() {
         return new Handler(message -> {
-
             Bundle bundle = message.getData();
             float[] locationInfo = bundle.getFloatArray("locationInfo");
-            Log.d(TAG, "locationHandler " + locationInfo[0] + " " + locationInfo[1] + " " + locationInfo[2]);
 
             if(locationInfo != null && locationInfo.length > 2) {
                 accuracy = locationInfo[1];
-                speed = locationInfo[2];
+
+                speed = (locationInfo[2] * 3600) / 1000;
+
                 if(start)
                     training.setDistance(locationInfo[0] / 1000);
+
+                Log.d(TAG, "locationHandler end: training.distance - " + training.getDistance() + " " + locationInfo[0]);
             }
 
             showLocationData();
-
             return true;
         });
     }
@@ -133,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 training.setDuration(Helper.getDuration(startDateTime));
 
             showLocationData();
+            DURATION_COUNTER++;
 
             return true;
         });
@@ -152,8 +157,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLocationData() {
-        durationTextView.setText(Helper.getStringDuration(training.getDuration()));
+        if(DURATION_COUNTER == DURATION_COUNTER_LIMIT) {
+            WeatherProvider.getInstance().getTemperature();
+            DURATION_COUNTER = 0;
+        } else {
+            temperatureTextView.setText(Helper.getStringTemperature(temperature));
+        }
 
+        durationTextView.setText(Helper.getStringDuration(training.getDuration()));
         distanceTextView.setText(Helper.getStringDistance(training.getDistance()));
 
         if(accuracy > 0)

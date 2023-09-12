@@ -27,7 +27,7 @@ public class LocationService extends Service {
     private Location currentLocation;
     private float distanceInMeters;
 
-    private final int CYCLE_DURATION = 2000;
+    private final int CYCLE_DURATION = 3000;
     private final float MIN_DISTANCE = 0;
     private final String NETWORK_PROVIDER = "network";
 
@@ -68,17 +68,19 @@ public class LocationService extends Service {
 
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                Log.d(TAG, "onLocationChanged");
+                Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getAltitude());
 
-                if(currentLocation != null && start)
+                if(currentLocation != null && start && location.getSpeed() > 0)
                     calculateDistance(location);
-
-                currentLocation = location;
 
                 MainActivity.locationHandler.sendMessage(getLocationMessage(location));
 
-                Log.d(TAG, "Provider " + location.getProvider() + ",  скорость: " + location.getSpeed()
-                        + ",  расстояние: " + distanceInMeters + ",  точность: " + location.getAccuracy());
+                if(currentLocation != null) {
+                    Log.d(TAG, currentLocation.getLatitude() + " " + currentLocation.getAltitude() + " | Provider " + location.getProvider() + ",  скорость: " + location.getSpeed()
+                            + ",  расстояние: " + currentLocation.distanceTo(location) + ",  точность: " + location.getAccuracy());
+                }
+
+                currentLocation = location;
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -119,10 +121,7 @@ public class LocationService extends Service {
             return;
 
         float distance = location.distanceTo(currentLocation);
-        Log.d(TAG, String.valueOf(distance));
-
-        if (location.getSpeed() > 0) {
-            distanceInMeters += distance;
-        }
+        Log.d(TAG, "distance " + distance);
+        distanceInMeters += (distance / 10);
     }
 }
