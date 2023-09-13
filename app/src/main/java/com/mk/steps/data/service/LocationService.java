@@ -27,8 +27,8 @@ public class LocationService extends Service {
     private Location currentLocation;
     private float distanceInMeters;
 
-    private final int CYCLE_DURATION = 5000;
-    private final float MIN_DISTANCE = 3;
+    private final int CYCLE_DURATION = 0;
+    private final float MIN_DISTANCE = 5;
     private final String NETWORK_PROVIDER = "network";
 
     final String TAG = "myLogs";
@@ -107,8 +107,10 @@ public class LocationService extends Service {
     }
 
     private Message getLocationMessage(Location location) {
+        float tempDistance =  currentLocation != null ? ((float) (currentLocation.distanceTo(location) * 0.5)) : 0;
+
         Bundle bundle = new Bundle();
-        bundle.putFloatArray("locationInfo", new float[] {distanceInMeters, location.getAccuracy(), location.getSpeed()});
+        bundle.putFloatArray("locationInfo", new float[] {distanceInMeters, location.getAccuracy(), location.getSpeed(), tempDistance});
 
         Message message = new Message();
         message.setData(bundle);
@@ -122,6 +124,6 @@ public class LocationService extends Service {
 
         float distance = currentLocation.distanceTo(location);
         Log.d(TAG, "distance " + distance);
-        distanceInMeters += (distance * 0.9);
+        distanceInMeters += (distance * 0.5);
     }
 }
