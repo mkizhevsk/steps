@@ -120,7 +120,7 @@ public class LocationService extends Service {
         if (location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentLocation.getAccuracy())
             return;
 
-        float distance = location.distanceTo(currentLocation);
+        float distance = currentLocation.distanceTo(location);
         Log.d(TAG, "distance " + distance);
         distanceInMeters += (distance * 0.9);
     }
