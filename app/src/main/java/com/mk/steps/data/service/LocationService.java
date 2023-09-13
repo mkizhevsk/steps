@@ -27,8 +27,8 @@ public class LocationService extends Service {
     private Location currentLocation;
     private float distanceInMeters;
 
-    private final int CYCLE_DURATION = 3000;
-    private final float MIN_DISTANCE = 0;
+    private final int CYCLE_DURATION = 5000;
+    private final float MIN_DISTANCE = 3;
     private final String NETWORK_PROVIDER = "network";
 
     final String TAG = "myLogs";
@@ -122,6 +122,6 @@ public class LocationService extends Service {
 
         float distance = location.distanceTo(currentLocation);
         Log.d(TAG, "distance " + distance);
-        distanceInMeters += (distance / 10);
+        distanceInMeters += (distance * 0.9);
     }
 }
