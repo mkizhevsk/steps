@@ -19,17 +19,20 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.mk.steps.MainActivity;
+import com.mk.steps.data.dto.DatedLocation;
 
 public class LocationService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
 
-    private Location currentLocation;
+    //private Location currentLocation;
     private float distanceInMeters;
 
-    private final int CYCLE_DURATION = 0;
-    private final float MIN_DISTANCE = 5;
+    private final int CYCLE_DURATION = 1000;
+    private final float MIN_DISTANCE = 0;
     private final String NETWORK_PROVIDER = "network";
+
+    private DatedLocation currentDatedLocation;
 
     final String TAG = "myLogs";
 
@@ -70,17 +73,34 @@ public class LocationService extends Service {
             public void onLocationChanged(Location location) {
                 Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getAltitude());
 
-                if(currentLocation != null && start && location.getSpeed() > 0)
-                    calculateDistance(location);
+//                if(currentLocation != null && start && location.getSpeed() > 0)
+//                    calculateDistance(location);
 
-                MainActivity.locationHandler.sendMessage(getLocationMessage(location));
+                //MainActivity.locationHandler.sendMessage(getLocationMessage(location));
 
-                if(currentLocation != null) {
+                /*if(currentLocation != null) {
                     Log.d(TAG, currentLocation.getLatitude() + " " + currentLocation.getAltitude() + " | Provider " + location.getProvider() + ",  скорость: " + location.getSpeed()
                             + ",  расстояние: " + currentLocation.distanceTo(location) + ",  точность: " + location.getAccuracy());
                 }
+                currentLocation = location;*/
 
-                currentLocation = location;
+                if(currentDatedLocation != null) {
+                    DatedLocation tempDatedLocation = new DatedLocation(location);
+
+                    long differenceSeconds = currentDatedLocation.getSecondsDifference(tempDatedLocation.getDateTime());
+                    float differenceMeters = currentDatedLocation.getLocation().distanceTo(tempDatedLocation.getLocation());
+                    Log.d(TAG, "difference " + differenceSeconds + " " + differenceMeters);
+
+                    if(differenceSeconds > 5 && differenceMeters > 7) {
+                        if(start && location.getSpeed() > 0) {
+                            calculateDistance(location);
+                        }
+                        currentDatedLocation = tempDatedLocation;
+                    }
+                    MainActivity.locationHandler.sendMessage(getLocationMessage(location));
+                } else {
+                    currentDatedLocation = new DatedLocation(location);
+                }
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -107,7 +127,7 @@ public class LocationService extends Service {
     }
 
     private Message getLocationMessage(Location location) {
-        float tempDistance =  currentLocation != null ? ((float) (currentLocation.distanceTo(location) * 0.5)) : 0;
+        float tempDistance =  currentDatedLocation != null ? ((float) (currentDatedLocation.getLocation().distanceTo(location) * 0.5)) : 0;
 
         Bundle bundle = new Bundle();
         bundle.putFloatArray("locationInfo", new float[] {distanceInMeters, location.getAccuracy(), location.getSpeed(), tempDistance});
@@ -119,10 +139,10 @@ public class LocationService extends Service {
     }
 
     private void calculateDistance(Location location) {
-        if (location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentLocation.getAccuracy())
+        if (location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentDatedLocation.getLocation().getAccuracy())
             return;
 
-        float distance = currentLocation.distanceTo(location);
+        float distance = currentDatedLocation.getLocation().distanceTo(location);
         Log.d(TAG, "distance " + distance);
         distanceInMeters += (distance * 0.5);
     }
