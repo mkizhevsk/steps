@@ -38,7 +38,8 @@ public class LocationService extends Service {
     private final float LOW_SPEED_LIMIT = 10;
     private final float POOR_ACCURACY_LIMIT = 20;
 
-    private final float FINAL_COEFFICIENT = 1;
+    private final float LOW_SPEED_COEFFICIENT = 0.9F;
+    private float distanceCoefficient;
 
     private float distanceInMeters;
     private DatedLocation currentDatedLocation;
@@ -76,7 +77,10 @@ public class LocationService extends Service {
     public void getLocation() {
         Log.d(TAG, "getLocation start");
 
-        datedLocationDifferenceSeconds = MAX_DIFFERENCE_SECONDS; // default for running
+        // default for running
+        datedLocationDifferenceSeconds = MAX_DIFFERENCE_SECONDS;
+        distanceCoefficient = LOW_SPEED_COEFFICIENT;
+
         LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
 
         LocationListener locationListener = new LocationListener() {
@@ -101,7 +105,7 @@ public class LocationService extends Service {
                     currentDatedLocation = new DatedLocation(location);
                 }
 
-                datedLocationDifferenceSeconds = isMaximalSecondConditions(location) ? MAX_DIFFERENCE_SECONDS : MIN_DIFFERENCE_SECONDS;
+                setCoefficients(location);
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -120,6 +124,16 @@ public class LocationService extends Service {
 
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
+    }
+
+    private void setCoefficients(Location location) {
+        if(isMaximalSecondConditions(location)) {
+            datedLocationDifferenceSeconds = MAX_DIFFERENCE_SECONDS;
+            distanceCoefficient = LOW_SPEED_COEFFICIENT;
+        } else {
+            datedLocationDifferenceSeconds = MIN_DIFFERENCE_SECONDS;
+            distanceCoefficient = 1;
+        }
     }
 
     private boolean isMaximalSecondConditions(Location location) {
@@ -147,7 +161,7 @@ public class LocationService extends Service {
     private float getCurrentDistance(Location location) {
         float distance = currentDatedLocation.getLocation().distanceTo(location);
         //Log.d(TAG, "distance " + distance);
-        return distance * FINAL_COEFFICIENT;
+        return distance * distanceCoefficient;
     }
 
     private void calculateDistance(Location location) {
