@@ -25,13 +25,15 @@ public class LocationService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
 
-    //private Location currentLocation;
-    private float distanceInMeters;
-
-    private final int CYCLE_DURATION = 1000;
-    private final float MIN_DISTANCE = 0;
+    private final int LOCATION_CYCLE_DURATION = 1000;
+    private final float LOCATION_MIN_DISTANCE = 0;
     private final String NETWORK_PROVIDER = "network";
+    private final long DATED_LOCATION_DIFFERENCE_SECONDS = 5;
+    private final float DATED_LOCATION_DIFFERENCE_METERS = 7;
 
+    private final float FINAL_COEFFICIENT = 1;
+
+    private float distanceInMeters;
     private DatedLocation currentDatedLocation;
 
     final String TAG = "myLogs";
@@ -72,12 +74,10 @@ public class LocationService extends Service {
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getAltitude());
-
 //                if(currentLocation != null && start && location.getSpeed() > 0)
 //                    calculateDistance(location);
 
                 //MainActivity.locationHandler.sendMessage(getLocationMessage(location));
-
                 /*if(currentLocation != null) {
                     Log.d(TAG, currentLocation.getLatitude() + " " + currentLocation.getAltitude() + " | Provider " + location.getProvider() + ",  скорость: " + location.getSpeed()
                             + ",  расстояние: " + currentLocation.distanceTo(location) + ",  точность: " + location.getAccuracy());
@@ -91,7 +91,7 @@ public class LocationService extends Service {
                     float differenceMeters = currentDatedLocation.getLocation().distanceTo(tempDatedLocation.getLocation());
                     Log.d(TAG, "difference " + differenceSeconds + " " + differenceMeters);
 
-                    if(differenceSeconds > 5 && differenceMeters > 7) {
+                    if(differenceSeconds > DATED_LOCATION_DIFFERENCE_SECONDS && differenceMeters > DATED_LOCATION_DIFFERENCE_METERS) {
                         if(start && location.getSpeed() > 0) {
                             calculateDistance(location);
                         }
@@ -113,13 +113,12 @@ public class LocationService extends Service {
             }
         };
 
-        // Register the listener with the Location Manager to receive location updates
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, CYCLE_DURATION, MIN_DISTANCE, locationListener);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, CYCLE_DURATION, MIN_DISTANCE, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
     }
 
     public void clearDistance() {
@@ -127,7 +126,7 @@ public class LocationService extends Service {
     }
 
     private Message getLocationMessage(Location location) {
-        float tempDistance =  currentDatedLocation != null ? ((float) (currentDatedLocation.getLocation().distanceTo(location) * 0.5)) : 0;
+        float tempDistance =  currentDatedLocation != null ? getCurrentDistance(location) : 0;
 
         Bundle bundle = new Bundle();
         bundle.putFloatArray("locationInfo", new float[] {distanceInMeters, location.getAccuracy(), location.getSpeed(), tempDistance});
@@ -138,12 +137,16 @@ public class LocationService extends Service {
         return message;
     }
 
+    private float getCurrentDistance(Location location) {
+        float distance = currentDatedLocation.getLocation().distanceTo(location);
+        //Log.d(TAG, "distance " + distance);
+        return distance * FINAL_COEFFICIENT;
+    }
+
     private void calculateDistance(Location location) {
         if (location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentDatedLocation.getLocation().getAccuracy())
             return;
 
-        float distance = currentDatedLocation.getLocation().distanceTo(location);
-        Log.d(TAG, "distance " + distance);
-        distanceInMeters += (distance * 0.5);
+        distanceInMeters += getCurrentDistance(location);
     }
 }

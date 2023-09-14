@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                     training.setDistance(locationInfo[0] / 1000);
 
                 Log.d(TAG, "locationHandler end: training.distance - " + training.getDistance() + " " + locationInfo[0]);
-                Toast.makeText(this, locationInfo[0] + " | " + locationInfo[3], Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, locationInfo[0] + " | " + locationInfo[3], Toast.LENGTH_SHORT).show();
             }
 
             showLocationData();
