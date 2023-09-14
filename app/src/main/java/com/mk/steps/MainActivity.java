@@ -115,8 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
             if(locationInfo != null && locationInfo.length > 2) {
                 accuracy = locationInfo[1];
-
-                speed = (locationInfo[2] * 3600) / 1000;
+                speed = Helper.getSpeedInKmHour(locationInfo[2]);
 
                 if(start)
                     training.setDistance(locationInfo[0] / 1000);

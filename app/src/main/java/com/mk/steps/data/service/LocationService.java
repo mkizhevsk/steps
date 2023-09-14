@@ -19,6 +19,7 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.mk.steps.MainActivity;
+import com.mk.steps.data.Helper;
 import com.mk.steps.data.dto.DatedLocation;
 
 public class LocationService extends Service {
@@ -28,8 +29,14 @@ public class LocationService extends Service {
     private final int LOCATION_CYCLE_DURATION = 1000;
     private final float LOCATION_MIN_DISTANCE = 0;
     private final String NETWORK_PROVIDER = "network";
-    private final long DATED_LOCATION_DIFFERENCE_SECONDS = 5;
+
+    private final long MIN_DIFFERENCE_SECONDS = 5;
+    private final long MAX_DIFFERENCE_SECONDS = 10;
+    private float datedLocationDifferenceSeconds;
     private final float DATED_LOCATION_DIFFERENCE_METERS = 7;
+
+    private final float LOW_SPEED_LIMIT = 10;
+    private final float POOR_ACCURACY_LIMIT = 20;
 
     private final float FINAL_COEFFICIENT = 1;
 
@@ -68,21 +75,13 @@ public class LocationService extends Service {
 
     public void getLocation() {
         Log.d(TAG, "getLocation start");
-        // Acquire a reference to the system Location Manager
+
+        datedLocationDifferenceSeconds = MAX_DIFFERENCE_SECONDS; // default for running
         LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
 
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getAltitude());
-//                if(currentLocation != null && start && location.getSpeed() > 0)
-//                    calculateDistance(location);
-
-                //MainActivity.locationHandler.sendMessage(getLocationMessage(location));
-                /*if(currentLocation != null) {
-                    Log.d(TAG, currentLocation.getLatitude() + " " + currentLocation.getAltitude() + " | Provider " + location.getProvider() + ",  скорость: " + location.getSpeed()
-                            + ",  расстояние: " + currentLocation.distanceTo(location) + ",  точность: " + location.getAccuracy());
-                }
-                currentLocation = location;*/
+                Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getLongitude());
 
                 if(currentDatedLocation != null) {
                     DatedLocation tempDatedLocation = new DatedLocation(location);
@@ -91,7 +90,7 @@ public class LocationService extends Service {
                     float differenceMeters = currentDatedLocation.getLocation().distanceTo(tempDatedLocation.getLocation());
                     Log.d(TAG, "difference " + differenceSeconds + " " + differenceMeters);
 
-                    if(differenceSeconds > DATED_LOCATION_DIFFERENCE_SECONDS && differenceMeters > DATED_LOCATION_DIFFERENCE_METERS) {
+                    if(differenceSeconds > datedLocationDifferenceSeconds && differenceMeters > DATED_LOCATION_DIFFERENCE_METERS) {
                         if(start && location.getSpeed() > 0) {
                             calculateDistance(location);
                         }
@@ -101,6 +100,8 @@ public class LocationService extends Service {
                 } else {
                     currentDatedLocation = new DatedLocation(location);
                 }
+
+                datedLocationDifferenceSeconds = isMaximalSecondConditions(location) ? MAX_DIFFERENCE_SECONDS : MIN_DIFFERENCE_SECONDS;
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -119,6 +120,12 @@ public class LocationService extends Service {
 
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
+    }
+
+    private boolean isMaximalSecondConditions(Location location) {
+        boolean isLowSpeed = Helper.getSpeedInKmHour(location.getSpeed()) < LOW_SPEED_LIMIT;
+        boolean isPoorAccuracy = location.getAccuracy() > POOR_ACCURACY_LIMIT;
+        return isLowSpeed || isPoorAccuracy;
     }
 
     public void clearDistance() {

@@ -108,6 +108,10 @@ public class Helper {
         return Math.round(accuracy) + " м";
     }
 
+    public static float getSpeedInKmHour(float speedInMeterSecond) {
+        return (speedInMeterSecond * 3600) / 1000;
+    }
+
     public static RetrofitService getRetrofitApiWithUrl(String url) {
 
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
