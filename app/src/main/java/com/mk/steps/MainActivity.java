@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                 //Toast.makeText(this, locationInfo[0] + " | " + locationInfo[3], Toast.LENGTH_SHORT).show();
             }
 
-            showLocationData();
+            showAccuracy();
             return true;
         });
     }
@@ -166,12 +166,15 @@ public class MainActivity extends AppCompatActivity {
 
         durationTextView.setText(Helper.getStringDuration(training.getDuration()));
         distanceTextView.setText(Helper.getStringDistance(training.getDistance()));
-
-        if(accuracy > 0)
-            accuracyTextView.setText(Helper.getStringAccuracy(accuracy));
+        showAccuracy();
 
         if(speed > 0)
             speedTextView.setText(String.valueOf(speed));
+    }
+
+    private void showAccuracy() {
+        if(accuracy > 0)
+            accuracyTextView.setText(Helper.getStringAccuracy(accuracy));
     }
 
     public void onClick(View view) {
