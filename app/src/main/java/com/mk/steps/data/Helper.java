@@ -25,7 +25,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Helper {
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public static boolean checkPermissions(Context context, Activity mainActivity) {
         String[] permissions = new String[]{
@@ -67,12 +68,15 @@ public class Helper {
     }
 
     public static String getStringDate(Date date) {
+        return dateFormat.format(date);
+    }
 
-        return sdf.format(date);
+    public static String getStringDateTime(Date date) {
+        return dateTimeFormat.format(date);
     }
 
     public static Date getDateFromString(String date) throws ParseException {
-        return sdf.parse(date);
+        return dateFormat.parse(date);
     }
 
     public static String getTrainingHistory(List<Training> trainings) {
