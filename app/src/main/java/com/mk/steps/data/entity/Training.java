@@ -1,5 +1,7 @@
 package com.mk.steps.data.entity;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Date;
 
 public class Training {
@@ -10,23 +12,33 @@ public class Training {
     private int id;
 
     /**
+     * unique code
+     */
+    @SerializedName("internalCode")
+    private String internalCode;
+
+    /**
      * training date
      */
+    @SerializedName("date")
     private Date date;
 
     /**
      * distance in km
      */
+    @SerializedName("distance")
     private float distance;
 
     /**
      * duration in km
      */
+    @SerializedName("duration")
     private int duration;
 
     /**
      * 1 - running
      */
+    @SerializedName("type")
     private int type;
 
     public Training() {
@@ -45,6 +57,14 @@ public class Training {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getInternalCode() {
+        return internalCode;
+    }
+
+    public void setInternalCode(String internalCode) {
+        this.internalCode = internalCode;
     }
 
     public Date getDate() {

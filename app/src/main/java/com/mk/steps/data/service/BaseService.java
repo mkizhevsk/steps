@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.mk.steps.data.DBHelper;
 import com.mk.steps.data.Helper;
+import com.mk.steps.data.constant.OtherProperties;
 import com.mk.steps.data.entity.Training;
 
 import java.text.ParseException;
@@ -24,8 +25,7 @@ public class BaseService extends Service {
 
     DBHelper dbHelper;
 
-    private static final String BASE_NAME = "my_music.db";
-    private static final String TRAINING_TABLE = "training";
+    //private static final String TRAINING_TABLE = "training";
 
     final String TAG = "myLogs";
 
@@ -62,7 +62,7 @@ public class BaseService extends Service {
     public long insertTraining(Training training) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        long rowID = db.insert(TRAINING_TABLE, null, getTrainingContentValues(training));
+        long rowID = db.insert(OtherProperties.TRAINING_TABLE, null, getTrainingContentValues(training));
         Log.d(TAG, "note row inserted, ID = " + rowID);
 
         dbHelper.close();
@@ -72,6 +72,7 @@ public class BaseService extends Service {
     private ContentValues getTrainingContentValues(Training training) {
         ContentValues cv = new ContentValues();
 
+        cv.put("internal_code", training.getInternalCode());
         cv.put("date", Helper.getStringDate(training.getDate()));
         cv.put("distance", training.getDistance());
         cv.put("duration", training.getDuration());
@@ -116,6 +117,7 @@ public class BaseService extends Service {
 
         if (trainingCursor.moveToFirst()) {
             int idColIndex = trainingCursor.getColumnIndex("id");
+            int internalCodeColIndex = trainingCursor.getColumnIndex("internal_code");
             int dateColIndex = trainingCursor.getColumnIndex("date");
             int distanceColIndex = trainingCursor.getColumnIndex("distance");
             int durationColIndex = trainingCursor.getColumnIndex("duration");
@@ -124,6 +126,7 @@ public class BaseService extends Service {
             do {
                 Training training = new Training();
                 training.setId(trainingCursor.getInt(idColIndex));
+                training.setInternalCode(trainingCursor.getString(internalCodeColIndex));
                 training.setDate(Helper.getDateFromString(trainingCursor.getString(dateColIndex)));
                 training.setDistance(trainingCursor.getFloat(distanceColIndex));
                 training.setDuration(trainingCursor.getInt(durationColIndex));
@@ -140,7 +143,7 @@ public class BaseService extends Service {
         Log.d(TAG, "start getTrainings");
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        Cursor trainingCursor = db.query(TRAINING_TABLE, null, null, null, null, null, null);
+        Cursor trainingCursor = db.query(OtherProperties.TRAINING_TABLE, null, null, null, null, null, null);
         List<Training> trainings = getCursorTrainings(trainingCursor);
 
         trainingCursor.close();

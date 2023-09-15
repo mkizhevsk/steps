@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mk.steps.data.Helper;
+import com.mk.steps.data.StringRandomGenerator;
 import com.mk.steps.data.TinyFitnessProvider;
 import com.mk.steps.data.WeatherProvider;
 import com.mk.steps.data.entity.Training;
@@ -213,6 +214,8 @@ public class MainActivity extends AppCompatActivity {
     private void saveTraining() {
         Log.d(TAG, "saveTraining " + training.toString());
         if (training != null) {
+            training.setInternalCode(StringRandomGenerator.getInstance().getValue());
+
             training.setId((int) baseService.insertTraining(training));
 
             TinyFitnessProvider.getInstance().saveTraining(training);
