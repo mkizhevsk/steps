@@ -3,6 +3,9 @@ package com.mk.steps.data.service;
 import static com.mk.steps.MainActivity.start;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -54,6 +57,20 @@ public class LocationService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "LocationService onStartCommand");
+
+        final String CHANNEL_ID = "Foreground Service";
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_LOW);
+
+            getSystemService(NotificationManager.class).createNotificationChannel(channel);
+            Notification.Builder notification = new Notification.Builder(this, CHANNEL_ID)
+                    .setContentText("Foreground Service running")
+                    .setContentTitle("This is TITLE");
+            startForeground(1001, notification.build());
+
+            getLocation();
+        }
+
         return super.onStartCommand(intent, flags, startId);
     }
 

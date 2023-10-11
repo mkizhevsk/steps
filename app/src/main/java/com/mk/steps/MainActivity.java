@@ -307,7 +307,13 @@ public class MainActivity extends AppCompatActivity {
     private void startLocationService() {
         Log.d(TAG, "MainActivity startLocationService()");
         Intent intent = new Intent(this, LocationService.class);
-        bindService(intent, locationServiceConnection, Context.BIND_AUTO_CREATE);
+        //bindService(intent, locationServiceConnection, Context.BIND_AUTO_CREATE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            bindService(intent, locationServiceConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     private ServiceConnection locationServiceConnection = new ServiceConnection() {
