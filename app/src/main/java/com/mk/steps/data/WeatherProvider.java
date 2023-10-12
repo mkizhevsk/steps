@@ -32,7 +32,7 @@ public class WeatherProvider {
     public void getTemperature() {
         Log.d(TAG, "temperature start");
 
-        RetrofitService api =Helper.getRetrofitApiWithUrl(OPEN_WEATHER_API_URL);
+        RetrofitService api = Helper.getRetrofitApiWithUrl(OPEN_WEATHER_API_URL);
 
         api.loadPojoCityWeather(OPEN_WEATHER_APP_ID, OPEN_WEATHER_UNITS, OPEN_WEATHER_CITY)
                 .enqueue(new Callback<Weather>() {
