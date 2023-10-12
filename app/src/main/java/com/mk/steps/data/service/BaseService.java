@@ -73,7 +73,7 @@ public class BaseService extends Service {
         ContentValues cv = new ContentValues();
 
         cv.put("internal_code", training.getInternalCode());
-        cv.put("date", Helper.getStringDate(training.getDate()));
+        cv.put("date", Helper.getStringDate(training.getDateTime()));
         cv.put("distance", training.getDistance());
         cv.put("duration", training.getDuration());
         cv.put("type", training.getType());
@@ -127,7 +127,7 @@ public class BaseService extends Service {
                 Training training = new Training();
                 training.setId(trainingCursor.getInt(idColIndex));
                 training.setInternalCode(trainingCursor.getString(internalCodeColIndex));
-                training.setDate(Helper.getDateFromString(trainingCursor.getString(dateColIndex)));
+                training.setDateTime(Helper.getDateFromString(trainingCursor.getString(dateColIndex)));
                 training.setDistance(trainingCursor.getFloat(distanceColIndex));
                 training.setDuration(trainingCursor.getInt(durationColIndex));
                 training.setType(trainingCursor.getInt(typeColIndex));

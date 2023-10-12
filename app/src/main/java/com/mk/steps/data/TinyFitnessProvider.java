@@ -26,7 +26,7 @@ public class TinyFitnessProvider {
 
         RetrofitService api = Helper.getRetrofitApiWithUrl(TINY_FITNESS_URL);
 
-        String date = Helper.getStringDateTime(training.getDate());
+        String date = Helper.getStringDateTime(training.getDateTime());
         Log.d(TAG, date);
         api.saveTraining(date, training.getDistance(), training.getDuration(), training.getType())
                 .enqueue(new Callback<ResponseBody>() {

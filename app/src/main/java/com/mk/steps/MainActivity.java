@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
         startFinishButton.setText("Finish");
 
         startDateTime = new Date(System.currentTimeMillis());
-        training.setDate(startDateTime);
+        training.setDateTime(startDateTime);
         if(locationService != null)
             locationService.clearDistance();
 
