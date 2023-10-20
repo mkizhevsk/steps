@@ -1,14 +1,19 @@
 package com.mk.steps;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,6 +35,7 @@ import com.mk.steps.data.service.LocationService;
 import com.mk.steps.data.thread.DurationRunnable;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -84,14 +90,8 @@ public class MainActivity extends AppCompatActivity {
         start = false;
         finish = false;
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (Helper.checkPermissions(this, this)) {
-                Log.d(TAG, "permission granted by default");
-                startApp();
-            } else {
-                // todo quit
-            }
-        } else {
+        if (checkPermissions(this, this)) {
+            Log.d(TAG, "permission granted by default");
             startApp();
         }
     }
@@ -310,7 +310,6 @@ public class MainActivity extends AppCompatActivity {
     private void startLocationService() {
         Log.d(TAG, "MainActivity startLocationService()");
         Intent intent = new Intent(this, LocationService.class);
-        //bindService(intent, locationServiceConnection, Context.BIND_AUTO_CREATE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent);
@@ -326,6 +325,7 @@ public class MainActivity extends AppCompatActivity {
             locationService = binder.getService();
             Log.d(TAG, "MainActivity locationService onServiceConnected");
 
+            LocationService.running = true;
             locationService.getLocation();
         }
 
@@ -334,6 +334,32 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "MainActivity locationService onServiceDisconnected");
         }
     };
+
+    public static boolean checkPermissions(Context context, Activity mainActivity) {
+        String[] permissions = new String[]{
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+        };
+
+        int result;
+        List<String> listPermissionsNeeded = new ArrayList<>();
+        for (String p : permissions) {
+            result = ContextCompat.checkSelfPermission(context, p);
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(p);
+            }
+        }
+        if (!listPermissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(mainActivity, listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]), 100);
+            return false;
+        }
+        return true;
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length > 1) startApp();
+    }
 
     @Override
     protected void onDestroy() {
@@ -348,8 +374,10 @@ public class MainActivity extends AppCompatActivity {
         if (baseServiceConnection != null)
             unbindService(baseServiceConnection);
 
+        LocationService.running = false;
         stopService(new Intent(this, LocationService.class));
-        if (locationServiceConnection != null)
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O && locationServiceConnection != null)
             unbindService(locationServiceConnection);
 
         training = null;

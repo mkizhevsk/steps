@@ -49,6 +49,8 @@ public class LocationService extends Service {
 
     final String TAG = "myLogs";
 
+    public static boolean running = false;
+
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "LocationService onCreate");
@@ -68,6 +70,7 @@ public class LocationService extends Service {
                     .setContentTitle("This is TITLE");
             startForeground(1001, notification.build());
 
+            running = true;
             getLocation();
         }
 
@@ -102,27 +105,29 @@ public class LocationService extends Service {
 
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getLongitude());
+                if (running) {
+                    Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getLongitude());
 
-                if(currentDatedLocation != null) {
-                    DatedLocation tempDatedLocation = new DatedLocation(location);
+                    if(currentDatedLocation != null) {
+                        DatedLocation tempDatedLocation = new DatedLocation(location);
 
-                    long differenceSeconds = currentDatedLocation.getSecondsDifference(tempDatedLocation.getDateTime());
-                    float differenceMeters = currentDatedLocation.getLocation().distanceTo(tempDatedLocation.getLocation());
-                    Log.d(TAG, "difference " + differenceSeconds + " " + differenceMeters);
+                        long differenceSeconds = currentDatedLocation.getSecondsDifference(tempDatedLocation.getDateTime());
+                        float differenceMeters = currentDatedLocation.getLocation().distanceTo(tempDatedLocation.getLocation());
+                        Log.d(TAG, "difference " + differenceSeconds + " " + differenceMeters);
 
-                    if(differenceSeconds > datedLocationDifferenceSeconds && differenceMeters > DATED_LOCATION_DIFFERENCE_METERS) {
-                        if(start && location.getSpeed() > 0) {
-                            calculateDistance(location);
+                        if(differenceSeconds > datedLocationDifferenceSeconds && differenceMeters > DATED_LOCATION_DIFFERENCE_METERS) {
+                            if(start && location.getSpeed() > 0) {
+                                calculateDistance(location);
+                            }
+                            currentDatedLocation = tempDatedLocation;
                         }
-                        currentDatedLocation = tempDatedLocation;
+                        MainActivity.locationHandler.sendMessage(getLocationMessage(location));
+                    } else {
+                        currentDatedLocation = new DatedLocation(location);
                     }
-                    MainActivity.locationHandler.sendMessage(getLocationMessage(location));
-                } else {
-                    currentDatedLocation = new DatedLocation(location);
-                }
 
-                setCoefficients(location);
+                    setCoefficients(location);
+                }
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
