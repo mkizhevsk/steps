@@ -28,7 +28,7 @@ public class TinyFitnessProvider {
 
         String date = Helper.getStringDateTime(training.getDateTime());
         Log.d(TAG, date);
-        api.saveTraining(date, training.getDistance(), training.getDuration(), training.getType())
+        api.saveTraining(training.getInternalCode(), date, training.getDistance(), training.getDuration(), training.getType())
                 .enqueue(new Callback<ResponseBody>() {
 
             @Override

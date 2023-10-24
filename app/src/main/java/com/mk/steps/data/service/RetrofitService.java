@@ -16,5 +16,5 @@ public interface RetrofitService {
     Call<Weather> loadPojoCityWeather(@Query("APPID") String appId, @Query("units") String units, @Query("q") String city);
 
     @GET("addTraining")
-    Call<ResponseBody> saveTraining(@Query("date") String date, @Query("distance") double distance, @Query("duration") int duration, @Query("type") int type);
+    Call<ResponseBody> saveTraining(@Query("internalCode") String internalCode, @Query("date") String date, @Query("distance") double distance, @Query("duration") int duration, @Query("type") int type);
 }

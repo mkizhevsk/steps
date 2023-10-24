@@ -215,7 +215,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "saveTraining " + training.toString());
         if (training != null) {
             training.setInternalCode(StringRandomGenerator.getInstance().getValue());
-
             training.setId((int) baseService.insertTraining(training));
 
             TinyFitnessProvider.getInstance().saveTraining(training);
