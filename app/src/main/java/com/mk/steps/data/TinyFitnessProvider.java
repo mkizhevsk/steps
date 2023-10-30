@@ -24,7 +24,7 @@ public class TinyFitnessProvider {
     public void saveTraining(Training training) {
         Log.d(TAG, "saveTraining");
 
-        RetrofitService api = Helper.getRetrofitApiWithUrl(TINY_FITNESS_URL);
+        RetrofitService api = Helper.getRetrofitApiWithUrlAndAuth(TINY_FITNESS_URL);
 
         String date = Helper.getStringDateTime(training.getDateTime());
         Log.d(TAG, date);
