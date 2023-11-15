@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
         showAccuracy();
 
         if(speed > 0)
-            speedTextView.setText(String.valueOf(speed));
+            speedTextView.setText(String.valueOf(Helper.upToOneDecimalPlace(speed)));
     }
 
     private void showAccuracy() {
@@ -207,7 +207,9 @@ public class MainActivity extends AppCompatActivity {
 
         showLocationData();
         finish = true;
-
+        LocationService.running = false;
+        DurationRunnable.running = false;
+        Log.d(TAG, "training.getDistance() " + training.getDistance());
         editDistance();
     }
 
@@ -236,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
                         (dialog, id) -> {
                             Log.d(TAG, "from input: " + training.getDistance());
 
-                            training.setDistance(Float.parseFloat(String.valueOf(distanceInput.getText())));
+                            training.setDistance(Helper.getDoubleFromInput(distanceInput.getText()));
                             saveTraining();
 
                             distanceTextView.setText(String.valueOf(training.getDistance()));

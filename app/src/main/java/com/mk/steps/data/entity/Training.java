@@ -25,7 +25,7 @@ public class Training {
      * distance in km
      */
 //    @SerializedName("distance")
-    private float distance;
+    private double distance;
 
     /**
      * duration in km
@@ -73,11 +73,11 @@ public class Training {
         this.dateTime = dateTime;
     }
 
-    public float getDistance() {
+    public double getDistance() {
         return distance;
     }
 
-    public void setDistance(float distance) {
+    public void setDistance(double distance) {
         this.distance = distance;
     }
 

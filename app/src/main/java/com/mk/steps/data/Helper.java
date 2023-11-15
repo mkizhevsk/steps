@@ -1,5 +1,7 @@
 package com.mk.steps.data;
 
+import android.text.Editable;
+
 import com.mk.steps.data.entity.Training;
 import com.mk.steps.data.service.RetrofitService;
 
@@ -24,6 +26,11 @@ public class Helper {
 
     public static String getStringFromDouble(double value) {
         return String.valueOf(upToOneDecimalPlace(value));
+    }
+
+    public static double getDoubleFromInput(Editable inputValue) {
+        double doubleValue = Double.parseDouble(inputValue.toString());
+        return upToOneDecimalPlace(doubleValue);
     }
 
     public static double upToOneDecimalPlace(double value) {
@@ -77,7 +84,7 @@ public class Helper {
         return duration + " мин.";
     }
 
-    public static String getStringDistance(float distance) {
+    public static String getStringDistance(double distance) {
         return upToOneDecimalPlace(distance) + " км";
     }
 
