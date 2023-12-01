@@ -19,7 +19,8 @@ public class DBHelper extends SQLiteOpenHelper {
                     + "date text, "
                     + "distance real, "
                     + "duration integer, "
-                    + "type integer" + ");";
+                    + "type integer, "
+                    + "uploaded integer);";
 
     public DBHelper(Context context) {
         super(context, OtherProperties.BASE_NAME, null, 1);
