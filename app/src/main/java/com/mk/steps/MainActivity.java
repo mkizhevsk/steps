@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     public static Handler locationHandler;
     public static Handler durationHandler;
     public static Handler weatherHandler;
+    public static Handler tinyFitnessHandler;
 
     private BaseService baseService;
     private LocationService locationService;
@@ -102,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         locationHandler = getLocationHandler();
         durationHandler = getDurationHandler();
         weatherHandler = getWeatherHandler();
+        tinyFitnessHandler = getTinyFitnessHandler();
 
         startBaseService();
         startLocationService();
@@ -152,6 +154,28 @@ public class MainActivity extends AppCompatActivity {
             temperature = bundle.getDouble("temperature");
 
             temperatureTextView.setText(Helper.getStringTemperature(temperature));
+
+            return true;
+        });
+    }
+
+    private Handler getTinyFitnessHandler() {
+        return new Handler(message -> {
+            Log.d(TAG, "tinyFitnessHandler");
+
+            Bundle bundle = message.getData();
+            boolean result = bundle.getBoolean("result");
+
+            if (result) {
+                String text = String.format(
+                        "training was uploaded: %.1f | %d",
+                        Helper.upToOneDecimalPlace(training.getDistance()),
+                        training.getDuration()
+                );
+                Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "training was not uploaded", Toast.LENGTH_SHORT).show();
+            }
 
             return true;
         });
@@ -220,8 +244,6 @@ public class MainActivity extends AppCompatActivity {
             training.setId((int) baseService.insertTraining(training));
 
             TinyFitnessProvider.getInstance().saveTraining(training);
-
-            Toast.makeText(this, "training was saved: " + Helper.upToOneDecimalPlace(training.getDistance()) + " | " + training.getDuration(), Toast.LENGTH_SHORT).show();
         }
     }
 

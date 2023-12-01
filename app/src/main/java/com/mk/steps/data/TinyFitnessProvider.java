@@ -1,7 +1,10 @@
 package com.mk.steps.data;
 
+import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 
+import com.mk.steps.MainActivity;
 import com.mk.steps.data.entity.Training;
 import com.mk.steps.data.service.RetrofitService;
 
@@ -33,13 +36,25 @@ public class TinyFitnessProvider {
 
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.d(TAG, "onResponse");
+                Log.d(TAG, "onResponse " + response.isSuccessful());
+                MainActivity.tinyFitnessHandler.sendMessage(getTinyFitnessMessage(response.isSuccessful()));
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.d(TAG, "onFailure");
+                MainActivity.tinyFitnessHandler.sendMessage(getTinyFitnessMessage(false));
             }
         });
+    }
+
+    private Message getTinyFitnessMessage(boolean result) {
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("result", result);
+
+        Message message = new Message();
+        message.setData(bundle);
+
+        return message;
     }
 }
