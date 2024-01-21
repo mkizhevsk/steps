@@ -1,5 +1,6 @@
 package com.mk.steps.data;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
@@ -20,14 +21,20 @@ public class TinyFitnessProvider {
         return ourInstance;
     }
 
-    private final String TINY_FITNESS_URL = "https://tiny-fitness.ru/api/";
+    private final String HTTPS_TINY_FITNESS_URL = "https://tiny-fitness.ru/api/";
+    private final String HTTP_TINY_FITNESS_URL = "http://tiny-fitness.ru/api/";
 
     final String TAG = "myLogs";
 
     public void saveTraining(Training training) {
         Log.d(TAG, "saveTraining");
 
-        RetrofitService api = Helper.getRetrofitApiWithUrlAndAuth(TINY_FITNESS_URL);
+        RetrofitService api;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+            api = Helper.getRetrofitApiWithUrlAndAuth(HTTPS_TINY_FITNESS_URL);
+        } else {
+            api = Helper.getRetrofitApiWithUrlAndAuth(HTTP_TINY_FITNESS_URL);
+        }
 
         String date = Helper.getStringDateTime(training.getDateTime());
         Log.d(TAG, date);
