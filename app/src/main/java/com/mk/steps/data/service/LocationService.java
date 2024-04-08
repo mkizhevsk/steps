@@ -41,7 +41,7 @@ public class LocationService extends Service {
     private final float LOW_SPEED_LIMIT = 10;
     private final float POOR_ACCURACY_LIMIT = 20;
 
-    private final float LOW_SPEED_COEFFICIENT = 0.9F;
+    private final float LOW_SPEED_COEFFICIENT = 0.8F;
     private float distanceCoefficient;
 
     private float distanceInMeters;
