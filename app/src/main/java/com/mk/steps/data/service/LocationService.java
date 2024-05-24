@@ -41,9 +41,6 @@ public class LocationService extends Service {
     private final float LOW_SPEED_LIMIT = 10;
     private final float POOR_ACCURACY_LIMIT = 20;
 
-    private final float LOW_SPEED_COEFFICIENT = 0.9F;
-    private float distanceCoefficient;
-
     private float distanceInMeters;
     private DatedLocation currentDatedLocation;
 
@@ -99,7 +96,6 @@ public class LocationService extends Service {
 
         // default for running
         datedLocationDifferenceSeconds = MAX_DIFFERENCE_SECONDS;
-        distanceCoefficient = LOW_SPEED_COEFFICIENT;
 
         LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
 
@@ -151,10 +147,8 @@ public class LocationService extends Service {
     private void setCoefficients(Location location) {
         if(isMaximalSecondConditions(location)) {
             datedLocationDifferenceSeconds = MAX_DIFFERENCE_SECONDS;
-            distanceCoefficient = LOW_SPEED_COEFFICIENT;
         } else {
             datedLocationDifferenceSeconds = MIN_DIFFERENCE_SECONDS;
-            distanceCoefficient = 1;
         }
     }
 
@@ -183,13 +177,12 @@ public class LocationService extends Service {
     private float getCurrentDistance(Location location) {
         float distance = currentDatedLocation.getLocation().distanceTo(location);
         //Log.d(TAG, "distance " + distance);
-        return distance * distanceCoefficient;
+        return distance;
     }
 
     private void calculateDistance(Location location) {
         if (location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentDatedLocation.getLocation().getAccuracy())
             return;
-
         distanceInMeters += getCurrentDistance(location);
     }
 }
