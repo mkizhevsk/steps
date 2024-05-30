@@ -22,67 +22,57 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.mk.steps.MainActivity;
+import com.mk.steps.R;
 import com.mk.steps.data.Helper;
 import com.mk.steps.data.dto.DatedLocation;
 
 public class LocationService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
+    private final String TAG = "myLogs";
 
-    private final int LOCATION_CYCLE_DURATION = 1000;
-    private final float LOCATION_MIN_DISTANCE = 0;
-    private final String NETWORK_PROVIDER = "network";
+    // Location update settings
+    private static final int LOCATION_CYCLE_DURATION = 1000;
+    private static final float LOCATION_MIN_DISTANCE = 0;
+    private static final String NETWORK_PROVIDER = "network";
 
-    private final long MIN_DIFFERENCE_SECONDS = 5;
-    private final long MAX_DIFFERENCE_SECONDS = 10;
+    // Distance and accuracy settings
+    private static final long MIN_DIFFERENCE_SECONDS = 5;
+    private static final long MAX_DIFFERENCE_SECONDS = 10;
+    private static final float DATED_LOCATION_DIFFERENCE_METERS = 7;
+    private static final float LOW_SPEED_LIMIT = 10;
+    private static final float POOR_ACCURACY_LIMIT = 20;
+
+    // State variables
     private float datedLocationDifferenceSeconds;
-    private final float DATED_LOCATION_DIFFERENCE_METERS = 7;
-
-    private final float LOW_SPEED_LIMIT = 10;
-    private final float POOR_ACCURACY_LIMIT = 20;
-
     private float distanceInMeters;
     private DatedLocation currentDatedLocation;
 
-    final String TAG = "myLogs";
-
     public static boolean running = false;
 
+    @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "LocationService onCreate");
         clearDistance();
     }
 
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "LocationService onStartCommand");
 
-        final String CHANNEL_ID = "Foreground Service";
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_LOW);
+        setupForegroundService();
 
-            getSystemService(NotificationManager.class).createNotificationChannel(channel);
-            Notification.Builder notification = new Notification.Builder(this, CHANNEL_ID)
-                    .setContentText("Foreground Service running")
-                    .setContentTitle("This is TITLE");
-            startForeground(1001, notification.build());
-
-            running = true;
-            getLocation();
-        }
+        running = true;
+        getLocationUpdates();
 
         return super.onStartCommand(intent, flags, startId);
     }
 
+    @Override
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "LocationService onDestroy");
-    }
-
-    public class LocalBinder extends Binder {
-        public LocationService getService() {
-            return LocationService.this;
-        }
     }
 
     @Nullable
@@ -91,52 +81,35 @@ public class LocationService extends Service {
         return mBinder;
     }
 
-    public void getLocation() {
+    public class LocalBinder extends Binder {
+        public LocationService getService() {
+            return LocationService.this;
+        }
+    }
+
+    private void setupForegroundService() {
+        final String CHANNEL_ID = "Foreground Service";
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_LOW);
+            getSystemService(NotificationManager.class).createNotificationChannel(channel);
+            Notification.Builder notification = new Notification.Builder(this, CHANNEL_ID)
+                    .setContentText("Steps is running")
+                    .setContentTitle("STEPS")
+                    .setSmallIcon(R.drawable.running_man);
+            startForeground(1001, notification.build());
+        }
+    }
+
+    public void getLocationUpdates() {
         Log.d(TAG, "getLocation start");
 
-        // default for running
         datedLocationDifferenceSeconds = MAX_DIFFERENCE_SECONDS;
 
-        LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                if (running) {
-                    Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getLongitude());
-
-                    if(currentDatedLocation != null) {
-                        DatedLocation tempDatedLocation = new DatedLocation(location);
-
-                        long differenceSeconds = currentDatedLocation.getSecondsDifference(tempDatedLocation.getDateTime());
-                        float differenceMeters = currentDatedLocation.getLocation().distanceTo(tempDatedLocation.getLocation());
-                        Log.d(TAG, "difference " + differenceSeconds + " " + differenceMeters);
-
-                        if(differenceSeconds > datedLocationDifferenceSeconds && differenceMeters > DATED_LOCATION_DIFFERENCE_METERS) {
-                            if(start && location.getSpeed() > 0) {
-                                calculateDistance(location);
-                            }
-                            currentDatedLocation = tempDatedLocation;
-                        }
-                        MainActivity.locationHandler.sendMessage(getLocationMessage(location));
-                    } else {
-                        currentDatedLocation = new DatedLocation(location);
-                    }
-
-                    setCoefficients(location);
-                }
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
-
-            public void onProviderEnabled(String provider) {
-            }
-
-            public void onProviderDisabled(String provider) {
-            }
-        };
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        LocationListener locationListener = createLocationListener();
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // Handle permission not granted case
             return;
         }
 
@@ -144,12 +117,63 @@ public class LocationService extends Service {
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
     }
 
-    private void setCoefficients(Location location) {
-        if(isMaximalSecondConditions(location)) {
-            datedLocationDifferenceSeconds = MAX_DIFFERENCE_SECONDS;
+    private LocationListener createLocationListener() {
+        return new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                handleLocationChange(location);
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+            }
+        };
+    }
+
+    private void handleLocationChange(Location location) {
+        if (!running) return;
+
+        Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getLongitude());
+
+        if (currentDatedLocation != null) {
+            processNewLocation(location);
         } else {
-            datedLocationDifferenceSeconds = MIN_DIFFERENCE_SECONDS;
+            currentDatedLocation = new DatedLocation(location);
         }
+
+        setCoefficients(location);
+        MainActivity.locationHandler.sendMessage(createLocationMessage(location));
+    }
+
+    private void processNewLocation(Location location) {
+        DatedLocation tempDatedLocation = new DatedLocation(location);
+        long differenceSeconds = currentDatedLocation.getSecondsDifference(tempDatedLocation.getDateTime());
+        float differenceMeters = currentDatedLocation.getLocation().distanceTo(tempDatedLocation.getLocation());
+
+        Log.d(TAG, "difference " + differenceSeconds + " " + differenceMeters);
+
+        if (shouldUpdateLocation(differenceSeconds, differenceMeters)) {
+            if (start && location.getSpeed() > 0) {
+                calculateDistance(location);
+            }
+            currentDatedLocation = tempDatedLocation;
+        }
+    }
+
+    private boolean shouldUpdateLocation(long differenceSeconds, float differenceMeters) {
+        return differenceSeconds > datedLocationDifferenceSeconds && differenceMeters > DATED_LOCATION_DIFFERENCE_METERS;
+    }
+
+    private void setCoefficients(Location location) {
+        datedLocationDifferenceSeconds = isMaximalSecondConditions(location) ? MAX_DIFFERENCE_SECONDS : MIN_DIFFERENCE_SECONDS;
     }
 
     private boolean isMaximalSecondConditions(Location location) {
@@ -159,30 +183,29 @@ public class LocationService extends Service {
     }
 
     public void clearDistance() {
-        this.distanceInMeters = 0;
+        distanceInMeters = 0;
     }
 
-    private Message getLocationMessage(Location location) {
-        float tempDistance =  currentDatedLocation != null ? getCurrentDistance(location) : 0;
-
+    private Message createLocationMessage(Location location) {
+        float tempDistance = currentDatedLocation != null ? getCurrentDistance(location) : 0;
         Bundle bundle = new Bundle();
-        bundle.putFloatArray("locationInfo", new float[] {distanceInMeters, location.getAccuracy(), location.getSpeed(), tempDistance});
+        bundle.putFloatArray("locationInfo", new float[]{distanceInMeters, location.getAccuracy(), location.getSpeed(), tempDistance});
 
         Message message = new Message();
         message.setData(bundle);
-
         return message;
     }
 
     private float getCurrentDistance(Location location) {
-        float distance = currentDatedLocation.getLocation().distanceTo(location);
-        //Log.d(TAG, "distance " + distance);
-        return distance;
+        return currentDatedLocation.getLocation().distanceTo(location);
     }
 
     private void calculateDistance(Location location) {
-        if (location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentDatedLocation.getLocation().getAccuracy())
-            return;
+        if (isPoorNetworkAccuracy(location)) return;
         distanceInMeters += getCurrentDistance(location);
+    }
+
+    private boolean isPoorNetworkAccuracy(Location location) {
+        return location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentDatedLocation.getLocation().getAccuracy();
     }
 }

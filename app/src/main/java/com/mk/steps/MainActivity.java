@@ -349,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "MainActivity locationService onServiceConnected");
 
             LocationService.running = true;
-            locationService.getLocation();
+            locationService.getLocationUpdates();
         }
 
         @Override

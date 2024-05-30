@@ -28,9 +28,7 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         Log.d(TAG, "--- onCreate database ---");
-
         db.execSQL(TRAINING_NOTE);
-
         Log.d(TAG, "--- onCreate database finish ---");
     }
 
