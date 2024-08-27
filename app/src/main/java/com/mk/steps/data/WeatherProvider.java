@@ -49,7 +49,7 @@ public class WeatherProvider {
 
             @Override
             public void onFailure(Call<Weather> call, Throwable t) {
-
+                Log.e(TAG, t.toString());
             }
         });
     }
