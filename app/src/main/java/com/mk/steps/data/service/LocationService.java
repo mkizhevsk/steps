@@ -34,12 +34,11 @@ public class LocationService extends Service {
     // Location update settings
     private static final int LOCATION_CYCLE_DURATION = 1000;
     private static final float LOCATION_MIN_DISTANCE = 0;
-    private static final String NETWORK_PROVIDER = "network";
 
     // Distance and accuracy settings
-    private static final long MIN_DIFFERENCE_SECONDS = 5;
-    private static final long MAX_DIFFERENCE_SECONDS = 10;
-    private static final float DATED_LOCATION_DIFFERENCE_METERS = 7;
+    private static final long MIN_DIFFERENCE_SECONDS = 3;
+    private static final long MAX_DIFFERENCE_SECONDS = 6; // if velocity in km/h < LOW_SPEED_LIMIT and accuracy > POOR_ACCURACY_LIMIT
+    private static final float MIN_DIFFERENCE_METERS = 5; // condition to update currentDatedLocation
     private static final float LOW_SPEED_LIMIT = 10;
     private static final float POOR_ACCURACY_LIMIT = 20;
 
@@ -162,14 +161,14 @@ public class LocationService extends Service {
 
         if (shouldUpdateLocation(differenceSeconds, differenceMeters)) {
             if (start && location.getSpeed() > 0) {
-                calculateDistance(location);
+                distanceInMeters += getCurrentDistance(location);
             }
             currentDatedLocation = tempDatedLocation;
         }
     }
 
     private boolean shouldUpdateLocation(long differenceSeconds, float differenceMeters) {
-        return differenceSeconds > datedLocationDifferenceSeconds && differenceMeters > DATED_LOCATION_DIFFERENCE_METERS;
+        return differenceSeconds > datedLocationDifferenceSeconds && differenceMeters > MIN_DIFFERENCE_METERS;
     }
 
     private void setCoefficients(Location location) {
@@ -200,12 +199,12 @@ public class LocationService extends Service {
         return currentDatedLocation.getLocation().distanceTo(location);
     }
 
-    private void calculateDistance(Location location) {
-        if (isPoorNetworkAccuracy(location)) return;
-        distanceInMeters += getCurrentDistance(location);
-    }
+//    private void calculateDistance(Location location) {
+//        if (isPoorNetworkAccuracy(location)) return;
+//        distanceInMeters += getCurrentDistance(location);
+//    }
 
-    private boolean isPoorNetworkAccuracy(Location location) {
-        return location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentDatedLocation.getLocation().getAccuracy();
-    }
+//    private boolean isPoorNetworkAccuracy(Location location) {
+//        return location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentDatedLocation.getLocation().getAccuracy();
+//    }
 }
