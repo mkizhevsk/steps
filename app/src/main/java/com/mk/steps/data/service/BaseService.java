@@ -58,7 +58,7 @@ public class BaseService extends Service {
         return mBinder;
     }
 
-    // Note
+    // Training
     public long insertTraining(Training training) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
@@ -80,37 +80,6 @@ public class BaseService extends Service {
 
         return cv;
     }
-
-//    public void updateNote(Note note) {
-//        SQLiteDatabase db = dbHelper.getWritableDatabase();
-//
-//        int updCount = db.update("note", getTrainingContentValues(note), "id = " + note.getId(), null);
-//        Log.d(TAG, "note updated rows count = " + updCount);
-//        dbHelper.close();
-//    }
-
-//    public void deleteNote(int noteId) {
-//        SQLiteDatabase db = dbHelper.getWritableDatabase();
-//
-//        int delCount = db.delete("note", "id = " + noteId, null);
-//        Log.d(TAG, "note deleted rows count = " + delCount);
-//
-//        dbHelper.close();
-//    }
-
-//    public Note getNote(int noteId) {
-//        SQLiteDatabase db = dbHelper.getWritableDatabase();
-//
-//        String sql = "SELECT * FROM note where id = " + noteId;
-//        Cursor noteCursor = db.rawQuery(sql,null);
-//
-//        Note note = getCursorNotes(noteCursor).get(0);
-//
-//        noteCursor.close();
-//        dbHelper.close();
-//
-//        return note;
-//    }
 
     private List<Training> getCursorTrainings(Cursor trainingCursor) throws ParseException {
         List<Training> trainings = new ArrayList<>();
@@ -151,27 +120,5 @@ public class BaseService extends Service {
 
         return trainings;
     }
-
-//    public List<Note> getNotesByYear(String year) {
-//        Log.d(TAG, "" + year);
-//        SQLiteDatabase db = dbHelper.getWritableDatabase();
-//
-//        //db.rawQuery("SELECT * FROM tblMoment WHERE strftime('%Y', searchDate) = ?", new String[]{year});
-//
-//        //String sql = "SELECT * FROM note WHERE strftime('%Y', date) = " + year;
-//        //Log.d(TAG, sql);
-//        Cursor noteCursor = db.rawQuery("SELECT * FROM note WHERE strftime('%Y', date) = ?", new String[]{year});
-//
-//        List<Note> notes = getCursorNotes(noteCursor);
-//        for(Note note : notes) {
-//            Log.d(TAG, note.toString());
-//        }
-//
-//        noteCursor.close();
-//
-//        dbHelper.close();
-//
-//        return notes;
-//    }
 
 }

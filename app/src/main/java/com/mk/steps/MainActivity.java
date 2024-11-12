@@ -279,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
     }
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case 1: // path to music
+            case 1:
                 String deletedTracksInfo;
                 try {
                     deletedTracksInfo = Helper.getTrainingHistory(baseService.getTrainings());

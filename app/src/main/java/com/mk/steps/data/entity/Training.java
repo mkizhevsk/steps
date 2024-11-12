@@ -12,31 +12,26 @@ public class Training {
     /**
      * unique code
      */
-//    @SerializedName("internalCode")
     private String internalCode;
 
     /**
      * training date
      */
-//    @SerializedName("date")
     private Date dateTime;
 
     /**
      * distance in km
      */
-//    @SerializedName("distance")
     private double distance;
 
     /**
      * duration in km
      */
-//    @SerializedName("duration")
     private int duration;
 
     /**
      * 1 - running
      */
-//    @SerializedName("type")
     private int type;
 
     public Training() {

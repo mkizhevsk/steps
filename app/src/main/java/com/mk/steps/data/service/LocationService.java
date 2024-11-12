@@ -35,12 +35,16 @@ public class LocationService extends Service {
     private static final int LOCATION_CYCLE_DURATION = 1000;
     private static final float LOCATION_MIN_DISTANCE = 0;
 
-    // Distance and accuracy settings
+    /**
+     * Distance and accuracy settings
+     */
+    private static final float MIN_DIFFERENCE_METERS = 5; // condition to update currentDatedLocation
+
     private static final long MIN_DIFFERENCE_SECONDS = 3;
     private static final long MAX_DIFFERENCE_SECONDS = 6; // if velocity in km/h < LOW_SPEED_LIMIT and accuracy > POOR_ACCURACY_LIMIT
-    private static final float MIN_DIFFERENCE_METERS = 5; // condition to update currentDatedLocation
-    private static final float LOW_SPEED_LIMIT = 10;
-    private static final float POOR_ACCURACY_LIMIT = 20;
+
+    private static final float LOW_SPEED_LIMIT = 10;      // condition for max or min seconds
+    private static final float POOR_ACCURACY_LIMIT = 20;  // condition for max or min seconds
 
     // State variables
     private float datedLocationDifferenceSeconds;
@@ -172,10 +176,10 @@ public class LocationService extends Service {
     }
 
     private void setCoefficients(Location location) {
-        datedLocationDifferenceSeconds = isMaximalSecondConditions(location) ? MAX_DIFFERENCE_SECONDS : MIN_DIFFERENCE_SECONDS;
+        datedLocationDifferenceSeconds = isConditionForMaximalSeconds(location) ? MAX_DIFFERENCE_SECONDS : MIN_DIFFERENCE_SECONDS;
     }
 
-    private boolean isMaximalSecondConditions(Location location) {
+    private boolean isConditionForMaximalSeconds(Location location) {
         boolean isLowSpeed = Helper.getSpeedInKmHour(location.getSpeed()) < LOW_SPEED_LIMIT;
         boolean isPoorAccuracy = location.getAccuracy() > POOR_ACCURACY_LIMIT;
         return isLowSpeed || isPoorAccuracy;
