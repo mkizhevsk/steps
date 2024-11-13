@@ -1,4 +1,4 @@
-package com.mk.steps.data;
+package com.mk.steps.data.database;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -9,7 +9,6 @@ import com.mk.steps.data.constant.OtherProperties;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    //private static final String BASE_NAME = "steps.db";
     private static final String TAG = "myLogs";
 
     private static final String TRAINING_NOTE =

@@ -1,10 +1,11 @@
-package com.mk.steps.data;
+package com.mk.steps.data.provider;
 
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 
-import com.mk.steps.MainActivity;
+import com.mk.steps.ui.MainActivity;
+import com.mk.steps.data.util.Helper;
 import com.mk.steps.data.dto.weather.Weather;
 import com.mk.steps.data.service.RetrofitService;
 

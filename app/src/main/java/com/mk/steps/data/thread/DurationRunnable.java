@@ -1,6 +1,6 @@
 package com.mk.steps.data.thread;
 
-import static com.mk.steps.MainActivity.durationHandler;
+import static com.mk.steps.ui.MainActivity.durationHandler;
 
 import android.os.Message;
 import android.util.Log;

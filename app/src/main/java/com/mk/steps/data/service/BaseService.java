@@ -10,8 +10,8 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.mk.steps.data.DBHelper;
-import com.mk.steps.data.Helper;
+import com.mk.steps.data.database.DBHelper;
+import com.mk.steps.data.util.Helper;
 import com.mk.steps.data.constant.OtherProperties;
 import com.mk.steps.data.entity.Training;
 
@@ -24,8 +24,6 @@ public class BaseService extends Service {
     private final IBinder mBinder = new LocalBinder();
 
     DBHelper dbHelper;
-
-    //private static final String TRAINING_TABLE = "training";
 
     final String TAG = "myLogs";
 

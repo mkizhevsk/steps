@@ -1,4 +1,4 @@
-package com.mk.steps.data;
+package com.mk.steps.data.util;
 
 import android.text.Editable;
 

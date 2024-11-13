@@ -1,10 +1,12 @@
-package com.mk.steps;
+package com.mk.steps.ui;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.widget.TextView;
+
+import com.mk.steps.R;
 
 public class ListActivity extends Activity {
 

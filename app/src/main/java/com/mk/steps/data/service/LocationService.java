@@ -1,6 +1,6 @@
 package com.mk.steps.data.service;
 
-import static com.mk.steps.MainActivity.start;
+import static com.mk.steps.ui.MainActivity.start;
 
 import android.Manifest;
 import android.app.Notification;
@@ -21,9 +21,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-import com.mk.steps.MainActivity;
+import com.mk.steps.ui.MainActivity;
 import com.mk.steps.R;
-import com.mk.steps.data.Helper;
+import com.mk.steps.data.util.Helper;
 import com.mk.steps.data.dto.DatedLocation;
 
 public class LocationService extends Service {
@@ -40,8 +40,8 @@ public class LocationService extends Service {
      */
     private static final float MIN_DIFFERENCE_METERS = 5; // condition to update currentDatedLocation
 
-    private static final long MIN_DIFFERENCE_SECONDS = 3;
-    private static final long MAX_DIFFERENCE_SECONDS = 6; // if velocity in km/h < LOW_SPEED_LIMIT and accuracy > POOR_ACCURACY_LIMIT
+    private static final long MIN_DIFFERENCE_SECONDS = 2;
+    private static final long MAX_DIFFERENCE_SECONDS = 4; // if velocity in km/h < LOW_SPEED_LIMIT and accuracy > POOR_ACCURACY_LIMIT
 
     private static final float LOW_SPEED_LIMIT = 10;      // condition for max or min seconds
     private static final float POOR_ACCURACY_LIMIT = 20;  // condition for max or min seconds
@@ -203,12 +203,4 @@ public class LocationService extends Service {
         return currentDatedLocation.getLocation().distanceTo(location);
     }
 
-//    private void calculateDistance(Location location) {
-//        if (isPoorNetworkAccuracy(location)) return;
-//        distanceInMeters += getCurrentDistance(location);
-//    }
-
-//    private boolean isPoorNetworkAccuracy(Location location) {
-//        return location.getProvider().equals(NETWORK_PROVIDER) && location.getAccuracy() > currentDatedLocation.getLocation().getAccuracy();
-//    }
 }
