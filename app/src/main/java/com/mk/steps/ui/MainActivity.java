@@ -1,4 +1,4 @@
-package com.mk.steps;
+package com.mk.steps.ui;
 
 import android.Manifest;
 import android.app.Activity;
@@ -25,14 +25,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.mk.steps.data.Helper;
-import com.mk.steps.data.StringRandomGenerator;
-import com.mk.steps.data.TinyFitnessProvider;
-import com.mk.steps.data.WeatherProvider;
+import com.mk.steps.R;
 import com.mk.steps.data.entity.Training;
+import com.mk.steps.data.provider.TinyFitnessProvider;
+import com.mk.steps.data.provider.WeatherProvider;
 import com.mk.steps.data.service.BaseService;
 import com.mk.steps.data.service.LocationService;
 import com.mk.steps.data.thread.DurationRunnable;
+import com.mk.steps.data.util.Helper;
+import com.mk.steps.data.util.StringRandomGenerator;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -273,14 +274,17 @@ public class MainActivity extends AppCompatActivity {
         createDialog.show();
     }
 
-    // top right menu
-    public  boolean onCreateOptionsMenu(Menu menu) {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(0, 1, 0, "training history");
+        menu.add(0, 2, 1, "exit");
         return super.onCreateOptionsMenu(menu);
     }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case 1:
+            case 1: // Training history
                 String deletedTracksInfo;
                 try {
                     deletedTracksInfo = Helper.getTrainingHistory(baseService.getTrainings());
@@ -291,7 +295,10 @@ public class MainActivity extends AppCompatActivity {
                 Intent deletedIntent = new Intent(this, ListActivity.class);
                 deletedIntent.putExtra("content", deletedTracksInfo);
                 startActivity(deletedIntent);
+                break;
 
+            case 2: // Exit
+                finish(); // Close the activity and exit the app
                 break;
         }
         return super.onOptionsItemSelected(item);
