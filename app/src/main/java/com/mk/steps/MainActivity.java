@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         temperatureTextView = findViewById(R.id.temperatureTextView);
         distanceTextView = findViewById(R.id.distanceTextView);
         speedTextView = findViewById(R.id.speedTextView);
+        speedTextView.setVisibility(View.GONE);
         startFinishButton = findViewById(R.id.startFinishButton);
         accuracyTextView = findViewById(R.id.accuracyTextView);
 
