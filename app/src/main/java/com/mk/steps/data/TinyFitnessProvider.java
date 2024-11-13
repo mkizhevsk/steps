@@ -27,10 +27,10 @@ public class TinyFitnessProvider {
     final String TAG = "myLogs";
 
     public void saveTraining(Training training) {
-        Log.d(TAG, "saveTraining");
+        Log.d(TAG, "saveTraining " + Build.VERSION.SDK_INT);
 
         RetrofitService api;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
             api = Helper.getRetrofitApiWithUrlAndAuth(HTTPS_TINY_FITNESS_URL);
         } else {
             api = Helper.getRetrofitApiWithUrlAndAuth(HTTP_TINY_FITNESS_URL);
