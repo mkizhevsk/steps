@@ -6,7 +6,6 @@ import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -16,16 +15,17 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-import com.mk.steps.ui.MainActivity;
 import com.mk.steps.R;
-import com.mk.steps.data.util.Helper;
 import com.mk.steps.data.dto.DatedLocation;
+import com.mk.steps.data.util.Helper;
+import com.mk.steps.ui.MainActivity;
 
 public class LocationService extends Service {
 
@@ -42,10 +42,10 @@ public class LocationService extends Service {
     private static final float MIN_DIFFERENCE_METERS = 5; // condition to update currentDatedLocation
 
     private static final long MIN_DIFFERENCE_SECONDS = 2;
-    private static final long MAX_DIFFERENCE_SECONDS = 4; // if velocity in km/h < LOW_SPEED_LIMIT and accuracy > POOR_ACCURACY_LIMIT
-
+    private static final long MAX_DIFFERENCE_SECONDS = 4; // if velocity in km/h < LOW_SPEED_LIMIT
     private static final float LOW_SPEED_LIMIT = 10;      // condition for max or min seconds
-    private static final float POOR_ACCURACY_LIMIT = 20;  // condition for max or min seconds
+
+    private static final float POOR_ACCURACY_LIMIT = 20;  // minimal accuracy to process location
 
     // State variables
     private float datedLocationDifferenceSeconds;
@@ -118,7 +118,14 @@ public class LocationService extends Service {
         }
 
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
+
+        // Optionally, request network updates as a fallback after some delay (if GPS is not available)
+        new Handler().postDelayed(() -> {
+            if (isGpsUnavailable(locationManager)) {
+                Log.d(TAG, "GPS is unavailable, falling back to NETWORK_PROVIDER.");
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
+            }
+        }, 5000); // Wait for 5 seconds before switching to the network provider
     }
 
     private LocationListener createLocationListener() {
@@ -143,7 +150,14 @@ public class LocationService extends Service {
     }
 
     private void handleLocationChange(Location location) {
-        if (!running) return;
+        if (!running)
+            return;
+
+        // Skip location if accuracy is worse than 20 meters
+        if (location.getAccuracy() > POOR_ACCURACY_LIMIT) {
+            Log.d(TAG, "Location accuracy too low, skipping update");
+            return;
+        }
 
         Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getLongitude());
 
@@ -177,13 +191,7 @@ public class LocationService extends Service {
     }
 
     private void setCoefficients(Location location) {
-        datedLocationDifferenceSeconds = isConditionForMaximalSeconds(location) ? MAX_DIFFERENCE_SECONDS : MIN_DIFFERENCE_SECONDS;
-    }
-
-    private boolean isConditionForMaximalSeconds(Location location) {
-        boolean isLowSpeed = Helper.getSpeedInKmHour(location.getSpeed()) < LOW_SPEED_LIMIT;
-        boolean isPoorAccuracy = location.getAccuracy() > POOR_ACCURACY_LIMIT;
-        return isLowSpeed || isPoorAccuracy;
+        datedLocationDifferenceSeconds = Helper.getSpeedInKmHour(location.getSpeed()) < LOW_SPEED_LIMIT ? MAX_DIFFERENCE_SECONDS : MIN_DIFFERENCE_SECONDS;
     }
 
     public void clearDistance() {
@@ -202,6 +210,11 @@ public class LocationService extends Service {
 
     private float getCurrentDistance(Location location) {
         return currentDatedLocation.getLocation().distanceTo(location);
+    }
+
+    private boolean isGpsUnavailable(LocationManager locationManager) {
+        // Check if GPS provider is available
+        return !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
 
 }
