@@ -93,29 +93,13 @@ public class LocationService extends Service {
 
     private void setupForegroundService() {
         final String CHANNEL_ID = "Foreground Service";
-
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_LOW);
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
-
-            // Create an intent that will be triggered when the notification is tapped
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-            PendingIntent pendingIntent = PendingIntent.getActivity(
-                    this,
-                    0,
-                    notificationIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE // FLAG_IMMUTABLE is required for Android 12+
-            );
-
             Notification.Builder notification = new Notification.Builder(this, CHANNEL_ID)
                     .setContentTitle(getString(R.string.app_name))
                     .setContentText(getString(R.string.app_name) + " is running")
-                    .setSmallIcon(R.drawable.running_man)
-                    .setContentIntent(pendingIntent) // Set the intent to be triggered on tap
-                    .setAutoCancel(true); // Optional: Close the notification when tapped
-
+                    .setSmallIcon(R.drawable.running_man);
             startForeground(1001, notification.build());
         }
     }
