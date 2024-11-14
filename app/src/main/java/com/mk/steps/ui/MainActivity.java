@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -71,13 +72,14 @@ public class MainActivity extends AppCompatActivity {
     private LocationService locationService;
 
     private int DURATION_COUNTER = 0;
-    private int DURATION_COUNTER_LIMIT = 60;
+    private int DURATION_COUNTER_LIMIT = 20;
 
     final String TAG = "myLogs";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.main);
 
         durationTextView = findViewById(R.id.durationTextView);
@@ -108,8 +110,6 @@ public class MainActivity extends AppCompatActivity {
         tinyFitnessHandler = getTinyFitnessHandler();
 
         startBaseService();
-        startLocationService();
-        WeatherProvider.getInstance().getTemperature();
     }
 
     // handlers
@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
             if (startDateTime != null && start && !finish)
                 training.setDuration(Helper.getDuration(startDateTime));
 
-            showLocationData();
+            showCurrentData();
             DURATION_COUNTER++;
 
             return true;
@@ -156,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
             temperature = bundle.getDouble("temperature");
 
             temperatureTextView.setText(Helper.getStringTemperature(temperature));
+            showCurrentData();
 
             return true;
         });
@@ -183,14 +184,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void showLocationData() {
+    private void showCurrentData() {
         if(DURATION_COUNTER == DURATION_COUNTER_LIMIT) {
-            WeatherProvider.getInstance().getTemperature();
+            WeatherProvider.getInstance().checkNetworkAndFetchWeather(MainActivity.this);
             DURATION_COUNTER = 0;
-        } else {
-            temperatureTextView.setText(Helper.getStringTemperature(temperature));
         }
 
+        temperatureTextView.setText(Helper.getStringTemperature(temperature));
         durationTextView.setText(Helper.getStringDuration(training.getDuration()));
         distanceTextView.setText(Helper.getStringDistance(training.getDistance()));
         showAccuracy();
@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
     private void finishTraining() {
         training.setDuration(Helper.getDuration(startDateTime));
 
-        showLocationData();
+        showCurrentData();
         finish = true;
         LocationService.running = false;
         DurationRunnable.running = false;
@@ -328,6 +328,9 @@ public class MainActivity extends AppCompatActivity {
             for(Training training : trainings) {
                 Log.d(TAG, training.getId() + " " + training);
             }
+
+            startLocationService();
+            WeatherProvider.getInstance().checkNetworkAndFetchWeather(MainActivity.this);
         }
 
         @Override

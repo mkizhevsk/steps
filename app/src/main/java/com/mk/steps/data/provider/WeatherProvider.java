@@ -1,6 +1,10 @@
 package com.mk.steps.data.provider;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
@@ -53,6 +57,28 @@ public class WeatherProvider {
                 Log.e(TAG, t.toString());
             }
         });
+    }
+
+    public void checkNetworkAndFetchWeather(Context context) {
+        Handler handler = new Handler();
+        Runnable fetchWeatherRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isNetworkAvailable(context)) {
+                    getTemperature();
+                } else {
+                    handler.postDelayed(this, 5000); // Retry every 5 seconds
+                }
+            }
+        };
+        handler.post(fetchWeatherRunnable); // Start the check immediately
+    }
+
+    public boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     private Message getWeatherHandlerMessage(double temperature) {
