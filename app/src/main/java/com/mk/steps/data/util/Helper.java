@@ -84,8 +84,8 @@ public class Helper {
         return duration + " мин.";
     }
 
-    public static String getStringDistance(double distance) {
-        return upToOneDecimalPlace(distance) + " км";
+    public static String getStringDistance(double distance, String kmUnit) {
+        return upToOneDecimalPlace(distance) + " " + kmUnit;
     }
 
     public static String getStringAccuracy(float accuracy) {

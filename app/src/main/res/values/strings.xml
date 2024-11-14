@@ -1,5 +1,8 @@
 <resources>
-    <string name="app_name">steps</string>
+    <string name="app_name">Tiny-fitness</string>
     <string name="sqlite_service_desc">SQLite service</string>
     <string name="location_service_desc">Location service</string>
+
+    <string name="unit_km">km</string>
+    <string name="default_distance">0.0 km</string>
 </resources>
