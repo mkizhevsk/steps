@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -207,7 +208,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startTraining() {
-        startFinishButton.setText("Finish");
+        String finish = this.getString(R.string.finish);
+        startFinishButton.setText(finish);
+        startFinishButton.setTextColor(Color.WHITE);
+        startFinishButton.setBackgroundResource(R.drawable.training_active_background);
 
         startDateTime = new Date(System.currentTimeMillis());
         training.setDateTime(startDateTime);
@@ -221,6 +225,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void finishTraining() {
+        startFinishButton.setTextColor(Color.BLACK);
+        startFinishButton.setBackgroundResource(R.drawable.training_finished_background);
+
         training.setDuration(Helper.getDuration(startDateTime));
 
         showCurrentData();
@@ -237,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
             training.setInternalCode(StringRandomGenerator.getInstance().getValue());
             training.setId((int) baseService.insertTraining(training));
 
-            TinyFitnessProvider.getInstance().saveTraining(training);
+            TinyFitnessProvider.getInstance().uploadTraining(training);
         }
     }
 
@@ -317,12 +324,13 @@ public class MainActivity extends AppCompatActivity {
                 throw new RuntimeException(e);
             }
             Log.d(TAG, "trainings " + trainings.size());
-            for(Training training : trainings) {
-                Log.d(TAG, training.getId() + " " + training);
-            }
 
             startLocationService();
             WeatherProvider.getInstance().checkNetworkAndFetchWeather(MainActivity.this);
+            TinyFitnessProvider.getInstance().uploadLastTraining(trainings);
+//            for(Training training : trainings) {
+//                Log.d(TAG, training.toString());
+//            }
         }
 
         @Override

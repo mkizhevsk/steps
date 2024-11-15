@@ -5,4 +5,5 @@
 
     <string name="unit_km">km</string>
     <string name="default_distance">0.0 km</string>
+    <string name="finish">Finish</string>
 </resources>

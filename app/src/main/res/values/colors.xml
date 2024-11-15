@@ -4,5 +4,7 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
     <color name="greyText">#5E5659</color>
-    <color name="white">#D3D3D3</color>
+    <color name="trainingBeforeStartColor">#D3D3D3</color>
+    <color name="trainingActiveColor">#4CAF50</color>
+    <color name="trainingFinishedColor">#9E9E9E</color>
 </resources>

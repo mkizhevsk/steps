@@ -96,7 +96,8 @@ public class Training {
     public String toString() {
         return "Training{" +
                 "id=" + id +
-                ", date=" + dateTime +
+                ", internalCode='" + internalCode + '\'' +
+                ", dateTime=" + dateTime +
                 ", distance=" + distance +
                 ", duration=" + duration +
                 ", type=" + type +

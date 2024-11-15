@@ -40,7 +40,7 @@
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
         android:alpha="0.5"
-        android:background="@drawable/my_button"
+        android:background="@drawable/training_default_background"
         android:onClick="onClick"
         android:text="Start"
         android:textSize="20sp"

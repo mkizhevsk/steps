@@ -5,10 +5,14 @@ import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 
-import com.mk.steps.ui.MainActivity;
-import com.mk.steps.data.util.Helper;
 import com.mk.steps.data.entity.Training;
 import com.mk.steps.data.service.RetrofitService;
+import com.mk.steps.data.util.Helper;
+import com.mk.steps.ui.MainActivity;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -27,7 +31,7 @@ public class TinyFitnessProvider {
 
     final String TAG = "myLogs";
 
-    public void saveTraining(Training training) {
+    public void uploadTraining(Training training) {
         Log.d(TAG, "saveTraining " + Build.VERSION.SDK_INT);
 
         RetrofitService api;
@@ -65,4 +69,24 @@ public class TinyFitnessProvider {
 
         return message;
     }
+
+    public void uploadLastTraining(List<Training> trainings) {
+        if (trainings == null || trainings.isEmpty()) {
+            Log.d(TAG, "No trainings to save.");
+            return;
+        }
+
+        Collections.sort(trainings, new Comparator<Training>() {
+            @Override
+            public int compare(Training t1, Training t2) {
+                return t2.getDateTime().compareTo(t1.getDateTime());
+            }
+        });
+
+        Training lastTraining = trainings.get(0);
+        Log.d(TAG, "Most recent training found: " + lastTraining.getDateTime());
+
+        uploadTraining(lastTraining);
+    }
+
 }
