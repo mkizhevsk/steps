@@ -8,10 +8,10 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.mk.steps.ui.MainActivity;
-import com.mk.steps.data.util.Helper;
 import com.mk.steps.data.dto.weather.Weather;
 import com.mk.steps.data.service.RetrofitService;
+import com.mk.steps.data.util.Helper;
+import com.mk.steps.ui.MainActivity;
 
 import retrofit2.Call;
 import retrofit2.Callback;

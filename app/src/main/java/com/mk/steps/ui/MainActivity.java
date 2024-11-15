@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView accuracyTextView;
 
     private double temperature;
-    private float accuracy = 0;
+    private float accuracy = -100;
     private Date startDateTime;
 
     private final int MINIMUM_DURATION = 1;
@@ -70,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
     private BaseService baseService;
     private LocationService locationService;
 
-    private int DURATION_COUNTER = 0;
-    private int DURATION_COUNTER_LIMIT = 20;
+    private int WEATHER_DURATION_COUNTER = 0;
+    private final int WEATHER_DURATION_COUNTER_LIMIT = 20;
 
     final String TAG = "myLogs";
 
@@ -124,7 +124,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "locationHandler end: training.distance - " + training.getDistance() + " " + locationInfo[0]);
             }
 
-            showAccuracy();
+            showCurrentData();
+
             return true;
         });
     }
@@ -137,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                 training.setDuration(Helper.getDuration(startDateTime));
 
             showCurrentData();
-            DURATION_COUNTER++;
+            WEATHER_DURATION_COUNTER++;
 
             return true;
         });
@@ -145,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Handler getWeatherHandler() {
         return new Handler(message -> {
-            Log.d(TAG, "weatherHandler");
+            Log.d(TAG, "weatherHandler start");
 
             Bundle bundle = message.getData();
             temperature = bundle.getDouble("temperature");
@@ -159,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Handler getTinyFitnessHandler() {
         return new Handler(message -> {
-            Log.d(TAG, "tinyFitnessHandler");
+            Log.d(TAG, "tinyFitnessHandler start");
 
             Bundle bundle = message.getData();
             boolean result = bundle.getBoolean("result");
@@ -180,20 +181,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showCurrentData() {
-        if(DURATION_COUNTER == DURATION_COUNTER_LIMIT) {
+        if (WEATHER_DURATION_COUNTER == WEATHER_DURATION_COUNTER_LIMIT) {
             WeatherProvider.getInstance().checkNetworkAndFetchWeather(MainActivity.this);
-            DURATION_COUNTER = 0;
+            WEATHER_DURATION_COUNTER = 0;
         }
 
-        temperatureTextView.setText(Helper.getStringTemperature(temperature));
         durationTextView.setText(Helper.getStringDuration(training.getDuration()));
         String kmUnit = this.getString(R.string.unit_km);
         distanceTextView.setText(Helper.getStringDistance(training.getDistance(), kmUnit));
-        showAccuracy();
-    }
-
-    private void showAccuracy() {
-        if(accuracy > 0)
+        if (accuracy != -100)
             accuracyTextView.setText(Helper.getStringAccuracy(accuracy));
     }
 
@@ -222,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
         durationThread.start();
 
         start = true;
+        Log.d(TAG, "startTraining() end: startDateTime " + startDateTime);
     }
 
     private void finishTraining() {
@@ -234,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
         finish = true;
         LocationService.running = false;
         DurationRunnable.running = false;
-        Log.d(TAG, "training.getDistance() " + training.getDistance());
+        Log.d(TAG, "finishTraining() end: distance " + training.getDistance());
         editDistance();
     }
 
