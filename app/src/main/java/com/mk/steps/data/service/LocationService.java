@@ -34,12 +34,12 @@ public class LocationService extends Service {
 
     // Location update settings
     private static final int LOCATION_CYCLE_DURATION = 1000;
-    private static final float LOCATION_MIN_DISTANCE = 0;
+    private static final float LOCATION_MIN_DISTANCE = 1;
 
     /**
      * Distance and accuracy settings
      */
-    private static final float MIN_DIFFERENCE_METERS = 5; // condition to update currentDatedLocation
+    private static final float MIN_DIFFERENCE_METERS = 4; // condition to update currentDatedLocation
 
     private static final long MIN_DIFFERENCE_SECONDS = 2;
     private static final long MAX_DIFFERENCE_SECONDS = 4; // if velocity in km/h < LOW_SPEED_LIMIT
@@ -105,7 +105,7 @@ public class LocationService extends Service {
     }
 
     public void getLocationUpdates() {
-        Log.d(TAG, "getLocation start");
+        Log.d(TAG, "getLocationUpdates() start");
 
         datedLocationDifferenceSeconds = MAX_DIFFERENCE_SECONDS;
 
@@ -117,7 +117,7 @@ public class LocationService extends Service {
             return;
         }
 
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_CYCLE_DURATION, LOCATION_MIN_DISTANCE, locationListener);
 
         // Optionally, request network updates as a fallback after some delay (if GPS is not available)
         new Handler().postDelayed(() -> {
@@ -159,7 +159,7 @@ public class LocationService extends Service {
             return;
         }
 
-        Log.d(TAG, "onLocationChanged * * * " + location.getLatitude() + " " + location.getLongitude());
+        Log.d(TAG, "* onLocationChanged * | accuracy  " + location.getAccuracy() + ", source: " + location.getProvider());
 
         if (currentDatedLocation != null) {
             processNewLocation(location);
@@ -171,18 +171,17 @@ public class LocationService extends Service {
         MainActivity.locationHandler.sendMessage(createLocationMessage(location));
     }
 
-    private void processNewLocation(Location location) {
-        DatedLocation tempDatedLocation = new DatedLocation(location);
-        long differenceSeconds = currentDatedLocation.getSecondsDifference(tempDatedLocation.getDateTime());
-        float differenceMeters = currentDatedLocation.getLocation().distanceTo(tempDatedLocation.getLocation());
-
-        Log.d(TAG, "difference " + differenceSeconds + " " + differenceMeters);
+    private void processNewLocation(Location newLocation) {
+        DatedLocation newDatedLocation = new DatedLocation(newLocation);
+        long differenceSeconds = currentDatedLocation.getSecondsDifference(newDatedLocation.getDateTime());
+        float differenceMeters = currentDatedLocation.getLocation().distanceTo(newDatedLocation.getLocation());
 
         if (shouldUpdateLocation(differenceSeconds, differenceMeters)) {
-            if (start && location.getSpeed() > 0) {
-                distanceInMeters += getCurrentDistance(location);
+            if (start && newLocation.getSpeed() > 0) {
+                distanceInMeters += currentDatedLocation.getLocation().distanceTo(newLocation);
+                Log.d(TAG, "# new distanceInMeters: " + distanceInMeters + ", source: " + newLocation.getProvider());
             }
-            currentDatedLocation = tempDatedLocation;
+            currentDatedLocation = newDatedLocation;
         }
     }
 
@@ -199,9 +198,8 @@ public class LocationService extends Service {
     }
 
     private Message createLocationMessage(Location location) {
-        float tempDistance = currentDatedLocation != null ? getCurrentDistance(location) : 0;
         Bundle bundle = new Bundle();
-        bundle.putFloatArray("locationInfo", new float[]{distanceInMeters, location.getAccuracy(), location.getSpeed(), tempDistance});
+        bundle.putFloatArray("locationInfo", new float[]{distanceInMeters, location.getAccuracy()});
 
         Message message = new Message();
         message.setData(bundle);

@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private LocationService locationService;
 
     private int WEATHER_DURATION_COUNTER = 0;
-    private final int WEATHER_DURATION_COUNTER_LIMIT = 20;
+    private final int WEATHER_DURATION_COUNTER_LIMIT = 30;
 
     final String TAG = "myLogs";
 
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
             Bundle bundle = message.getData();
             float[] locationInfo = bundle.getFloatArray("locationInfo");
 
-            if(locationInfo != null && locationInfo.length > 2) {
+            if(locationInfo != null && locationInfo.length > 1) {
                 accuracy = locationInfo[1];
 
                 if(start)
