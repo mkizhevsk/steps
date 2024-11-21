@@ -21,8 +21,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Helper {
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-    private static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final SimpleDateFormat dateTimeFormatForApi = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final SimpleDateFormat dateTimeFormatForDb = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
     public static String getStringFromDouble(double value) {
         return String.valueOf(upToOneDecimalPlace(value));
@@ -47,16 +47,16 @@ public class Helper {
         return timeUnit.convert(diffInMillies,TimeUnit.MILLISECONDS);
     }
 
-    public static String getStringDate(Date date) {
-        return dateFormat.format(date);
+    public static String getStringDateTimeForApi(Date date) {
+        return dateTimeFormatForApi.format(date);
     }
 
-    public static String getStringDateTime(Date date) {
-        return dateTimeFormat.format(date);
+    public static String getStringDateTimeForDb(Date date) {
+        return dateTimeFormatForDb.format(date);
     }
 
-    public static Date getDateFromString(String date) throws ParseException {
-        return dateFormat.parse(date);
+    public static Date getDateTimeFromString(String date) throws ParseException {
+        return dateTimeFormatForDb.parse(date);
     }
 
     public static String getTrainingHistory(List<Training> trainings) {

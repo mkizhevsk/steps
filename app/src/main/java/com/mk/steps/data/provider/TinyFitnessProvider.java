@@ -32,7 +32,7 @@ public class TinyFitnessProvider {
     final String TAG = "myLogs";
 
     public void uploadTraining(Training training) {
-        Log.d(TAG, "saveTraining " + Build.VERSION.SDK_INT);
+        Log.d(TAG, "uploadTraining start: " + Build.VERSION.SDK_INT);
 
         RetrofitService api;
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
@@ -41,7 +41,7 @@ public class TinyFitnessProvider {
             api = Helper.getRetrofitApiWithUrlAndAuth(HTTP_TINY_FITNESS_URL);
         }
 
-        String date = Helper.getStringDateTime(training.getDateTime());
+        String date = Helper.getStringDateTimeForApi(training.getDateTime());
         Log.d(TAG, date);
         api.saveTraining(training.getInternalCode(), date, training.getDistance(), training.getDuration(), training.getType())
                 .enqueue(new Callback<ResponseBody>() {
@@ -84,7 +84,7 @@ public class TinyFitnessProvider {
         });
 
         Training lastTraining = trainings.get(0);
-        Log.d(TAG, "Most recent training found: " + lastTraining.getDateTime());
+        Log.d(TAG, "Most recent training found: " + lastTraining);
 
         uploadTraining(lastTraining);
     }

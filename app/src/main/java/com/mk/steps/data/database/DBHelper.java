@@ -11,12 +11,12 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "myLogs";
 
-    private static final String TRAINING_NOTE =
+    private static final String TRAINING_SCRIPT =
             "create table if not exists " + OtherProperties.TRAINING_TABLE + " ("
                     + "id integer primary key autoincrement, "
                     + "internal_code text, "
                     + "date text, "
-                    + "distance real, "
+                    + "distance integer, "
                     + "duration integer, "
                     + "type integer" + ");";
 
@@ -27,7 +27,7 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         Log.d(TAG, "--- onCreate database ---");
-        db.execSQL(TRAINING_NOTE);
+        db.execSQL(TRAINING_SCRIPT);
         Log.d(TAG, "--- onCreate database finish ---");
     }
 

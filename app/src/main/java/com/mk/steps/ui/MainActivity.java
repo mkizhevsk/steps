@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveTraining() {
-        Log.d(TAG, "saveTraining " + training.toString());
+        Log.d(TAG, "MainActivity saveTraining() start: " + training.toString());
         if (training != null) {
             training.setInternalCode(StringRandomGenerator.getInstance().getValue());
             training.setId((int) baseService.insertTraining(training));

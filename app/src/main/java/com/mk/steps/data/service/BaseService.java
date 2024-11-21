@@ -10,10 +10,10 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.mk.steps.data.database.DBHelper;
-import com.mk.steps.data.util.Helper;
 import com.mk.steps.data.constant.OtherProperties;
+import com.mk.steps.data.database.DBHelper;
 import com.mk.steps.data.entity.Training;
+import com.mk.steps.data.util.Helper;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -71,8 +71,8 @@ public class BaseService extends Service {
         ContentValues cv = new ContentValues();
 
         cv.put("internal_code", training.getInternalCode());
-        cv.put("date", Helper.getStringDate(training.getDateTime()));
-        cv.put("distance", training.getDistance());
+        cv.put("date", Helper.getStringDateTimeForDb(training.getDateTime()));
+        cv.put("distance", training.getIntDistance());
         cv.put("duration", training.getDuration());
         cv.put("type", training.getType());
 
@@ -94,8 +94,8 @@ public class BaseService extends Service {
                 Training training = new Training();
                 training.setId(trainingCursor.getInt(idColIndex));
                 training.setInternalCode(trainingCursor.getString(internalCodeColIndex));
-                training.setDateTime(Helper.getDateFromString(trainingCursor.getString(dateColIndex)));
-                training.setDistance(trainingCursor.getFloat(distanceColIndex));
+                training.setDateTime(Helper.getDateTimeFromString(trainingCursor.getString(dateColIndex)));
+                training.setDistanceFromInt(trainingCursor.getInt(distanceColIndex));
                 training.setDuration(trainingCursor.getInt(durationColIndex));
                 training.setType(trainingCursor.getInt(typeColIndex));
 

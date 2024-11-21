@@ -92,6 +92,14 @@ public class Training {
         this.type = type;
     }
 
+    public int getIntDistance() {
+        return (int) Math.round(distance * 10);
+    }
+
+    public void setDistanceFromInt(int intDistance) {
+        this.distance = (double) intDistance / 10;
+    }
+
     @Override
     public String toString() {
         return "Training{" +
